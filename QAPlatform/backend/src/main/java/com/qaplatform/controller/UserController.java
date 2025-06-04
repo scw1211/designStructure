@@ -161,9 +161,11 @@ public class UserController {
      */
     @GetMapping("/profile")
     @Operation(summary = "获取当前用户信息", description = "获取当前登录用户的详细信息")
-    public ResponseEntity<?> getCurrentUser(@RequestAttribute("userId") Long userId) {
+    public ResponseEntity<?> getCurrentUser(@RequestHeader(value = "X-User-Id", required = false) Long userId,
+                                            @RequestAttribute(value = "currentUserId", required = false) Long currentUserId) {
         try {
-            User user = userService.findById(userId)
+            Long id = userId != null ? userId : currentUserId;
+            User user = userService.findById(id)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
             return ResponseEntity.ok(user);
         } catch (Exception e) {
@@ -176,10 +178,12 @@ public class UserController {
      */
     @PutMapping("/profile")
     @Operation(summary = "更新用户信息", description = "更新当前用户的个人信息")
-    public ResponseEntity<?> updateProfile(@RequestAttribute("userId") Long userId,
-                                         @Valid @RequestBody UpdateProfileRequest request) {
+    public ResponseEntity<?> updateProfile(@RequestHeader(value = "X-User-Id", required = false) Long userId,
+                                           @RequestAttribute(value = "currentUserId", required = false) Long currentUserId,
+                                           @Valid @RequestBody UpdateProfileRequest request) {
         try {
-            User user = userService.findById(userId)
+            Long id = userId != null ? userId : currentUserId;
+            User user = userService.findById(id)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
             
             // 更新个人资料
@@ -260,13 +264,15 @@ public class UserController {
      */
     @PostMapping("/change-password")
     @Operation(summary = "修改密码", description = "修改用户密码")
-    public ResponseEntity<?> changePassword(@RequestAttribute("userId") Long userId,
-                                          @Valid @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<?> changePassword(@RequestHeader(value = "X-User-Id", required = false) Long userId,
+                                            @RequestAttribute(value = "currentUserId", required = false) Long currentUserId,
+                                            @Valid @RequestBody ChangePasswordRequest request) {
         try {
             String oldPassword = request.getOldPassword();
             String newPassword = request.getNewPassword();
             
-            boolean success = userService.changePassword(userId, oldPassword, newPassword);
+            Long id = userId != null ? userId : currentUserId;
+            boolean success = userService.changePassword(id, oldPassword, newPassword);
             
             if (success) {
                 Map<String, Object> response = new HashMap<>();
