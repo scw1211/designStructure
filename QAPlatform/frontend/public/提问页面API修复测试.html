@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛠️ 提问页面API修复测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 8px;
+        }
+        
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .btn.test { background: #17a2b8; }
+        .btn.warning { background: #ffc107; color: #212529; }
+        .btn.danger { background: #dc3545; }
+        
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #fd7e14; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        
+        .issue-fixed {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .issue-fixed h4 {
+            color: #155724;
+            margin: 0 0 10px 0;
+        }
+        
+        .api-test {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ 提问页面API修复测试</h1>
+            <p>验证"请求资源不存在"问题的修复效果</p>
+        </div>
+
+        <div class="content">
+            <!-- 问题修复说明 -->
+            <div class="test-section">
+                <h3>🐛 问题分析</h3>
+                <div class="issue-fixed">
+                    <h4>原始问题：</h4>
+                    <p><strong>"点进去图片按esc退不出去"</strong> - 之前已修复</p>
+                    <p><strong>"进入提问页面显示请求资源不存在"</strong> - 当前问题</p>
+                    
+                    <h4>问题根因：</h4>
+                    <p>提问页面在加载时会调用 <code>/api/user/drafts</code> API来获取用户草稿，但该API端点不存在，返回404错误。</p>
+                    
+                    <h4>修复方案：</h4>
+                    <p>新增 <code>UserDraftController</code> 控制器，提供完整的草稿管理API。</p>
+                </div>
+            </div>
+
+            <!-- API测试 -->
+            <div class="test-section">
+                <h3>🔧 API修复验证</h3>
+                <button class="btn test" onclick="testDraftApis()">测试草稿API</button>
+                <button class="btn" onclick="testTagsApi()">测试标签API</button>
+                <button class="btn warning" onclick="openAskPage()">打开提问页面</button>
+                <div class="status-box" id="apiStatus">
+点击"测试草稿API"开始验证修复效果...
+                </div>
+            </div>
+
+            <!-- 新增API功能 -->
+            <div class="test-section">
+                <h3>✨ 新增API功能</h3>
+                <div class="api-test">
+                    <strong>1. 获取用户草稿：</strong> <code>GET /api/user/drafts</code><br>
+                    <strong>2. 保存草稿：</strong> <code>POST /api/user/drafts</code><br>
+                    <strong>3. 删除草稿：</strong> <code>DELETE /api/user/drafts/{id}</code>
+                </div>
+                <button class="btn" onclick="testSaveDraft()">测试保存草稿</button>
+                <button class="btn danger" onclick="testDeleteDraft()">测试删除草稿</button>
+                <div class="status-box" id="draftStatus">
+准备测试草稿功能...
+                </div>
+            </div>
+
+            <!-- 使用指导 -->
+            <div class="test-section">
+                <h3>📋 验证步骤</h3>
+                <ol>
+                    <li><strong>API测试：</strong>先点击"测试草稿API"验证API正常工作</li>
+                    <li><strong>页面测试：</strong>点击"打开提问页面"在Vue应用中测试</li>
+                    <li><strong>功能验证：</strong>确认不再出现"请求资源不存在"错误</li>
+                    <li><strong>完整测试：</strong>尝试填写表单、保存草稿等操作</li>
+                </ol>
+            </div>
+
+            <!-- 预期效果 -->
+            <div class="test-section">
+                <h3>🎯 预期效果</h3>
+                <ul>
+                    <li>✅ 提问页面正常加载，无错误提示</li>
+                    <li>✅ 热门标签正常显示</li>
+                    <li>✅ 草稿功能正常工作（本地存储）</li>
+                    <li>✅ 问题发布功能正常</li>
+                    <li>✅ 图片上传功能正常</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        // 测试草稿相关API
+        async function testDraftApis() {
+            try {
+                updateStatus('apiStatus', '🔄 正在测试草稿API...', 'info');
+                
+                // 测试获取草稿列表
+                const getDraftsResponse = await fetch(`${API_BASE}/user/drafts`);
+                if (!getDraftsResponse.ok) {
+                    throw new Error(`获取草稿失败: ${getDraftsResponse.status}`);
+                }
+                const drafts = await getDraftsResponse.json();
+                
+                updateStatus('apiStatus', `✅ 草稿API测试成功！
+📋 GET /api/user/drafts - 正常 (返回${Array.isArray(drafts) ? drafts.length : 0}个草稿)
+🎯 问题已修复：提问页面现在可以正常加载`, 'success');
+                
+            } catch (error) {
+                updateStatus('apiStatus', `❌ 草稿API测试失败: ${error.message}
+💡 请确保后端服务正在运行`, 'error');
+            }
+        }
+
+        // 测试标签API
+        async function testTagsApi() {
+            try {
+                updateStatus('apiStatus', '🔄 正在测试标签API...', 'info');
+                
+                const response = await fetch(`${API_BASE}/tags/popular`);
+                if (!response.ok) {
+                    throw new Error(`获取标签失败: ${response.status}`);
+                }
+                const tags = await response.json();
+                
+                updateStatus('apiStatus', `✅ 标签API测试成功！
+🏷️ 获取到 ${tags.length} 个热门标签
+📊 API状态：正常`, 'success');
+                
+            } catch (error) {
+                updateStatus('apiStatus', `❌ 标签API测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试保存草稿
+        async function testSaveDraft() {
+            try {
+                updateStatus('draftStatus', '🔄 正在测试保存草稿...', 'info');
+                
+                const draftData = {
+                    title: '测试草稿标题',
+                    content: '这是一个测试草稿的内容',
+                    tags: ['测试', 'API'],
+                    type: 'question'
+                };
+                
+                const response = await fetch(`${API_BASE}/user/drafts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(draftData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`保存失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                updateStatus('draftStatus', `✅ 保存草稿测试成功！
+💾 草稿ID: ${result.draftId}
+📝 消息: ${result.message}`, 'success');
+                
+            } catch (error) {
+                updateStatus('draftStatus', `❌ 保存草稿测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试删除草稿
+        async function testDeleteDraft() {
+            try {
+                updateStatus('draftStatus', '🔄 正在测试删除草稿...', 'info');
+                
+                const testDraftId = 123456;
+                const response = await fetch(`${API_BASE}/user/drafts/${testDraftId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`删除失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                updateStatus('draftStatus', `✅ 删除草稿测试成功！
+🗑️ 草稿ID: ${testDraftId}
+📝 消息: ${result.message}`, 'success');
+                
+            } catch (error) {
+                updateStatus('draftStatus', `❌ 删除草稿测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 打开提问页面
+        function openAskPage() {
+            const vueUrl = 'http://localhost:5174/ask';
+            window.open(vueUrl, '_blank');
+            updateStatus('apiStatus', `🔗 已在新窗口打开提问页面
+📱 请验证是否还出现"请求资源不存在"错误
+✅ 预期：页面正常加载，无错误提示`, 'info');
+        }
+
+        // 辅助函数
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `status-box ${type}`;
+        }
+
+        // 页面加载时自动测试
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testDraftApis, 1000);
+        });
+    </script>
+</body>
+</html> 

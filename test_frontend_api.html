@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        pre { background-color: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>前端API连接测试</h1>
+    <button onclick="runAllTests()">运行所有测试</button>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        async function testAPI(url, name) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                return {
+                    success: true,
+                    name,
+                    data: JSON.stringify(data, null, 2).substring(0, 500) + '...'
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    name,
+                    error: error.message
+                };
+            }
+        }
+
+        async function runAllTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>测试中...</p>';
+            
+            const tests = [
+                { url: `${API_BASE}/users`, name: '用户列表' },
+                { url: `${API_BASE}/analytics/platform-overview`, name: '平台概览' },
+                { url: `${API_BASE}/analytics/expert-users?limit=5`, name: '专家用户' },
+                { url: `${API_BASE}/analytics/trending-questions?limit=6`, name: '热门问题' },
+                { url: `${API_BASE}/analytics/tag-statistics?limit=10`, name: '标签统计' },
+                { url: `${API_BASE}/analytics/badge-statistics`, name: '徽章统计' },
+                { url: `${API_BASE}/analytics/activity-timeline?days=7`, name: '活动时间线' }
+            ];
+
+            let html = '';
+            for (const test of tests) {
+                const result = await testAPI(test.url, test.name);
+                const cssClass = result.success ? 'success' : 'error';
+                html += `
+                    <div class="test-result ${cssClass}">
+                        <h3>${result.name} - ${result.success ? '✅ 成功' : '❌ 失败'}</h3>
+                        ${result.success ? 
+                            `<pre>${result.data}</pre>` : 
+                            `<p>错误: ${result.error}</p>`
+                        }
+                    </div>
+                `;
+            }
+            
+            results.innerHTML = html;
+        }
+
+        // 页面加载时自动运行测试
+        window.onload = () => {
+            setTimeout(runAllTests, 1000);
+        };
+    </script>
+</body>
+</html> 

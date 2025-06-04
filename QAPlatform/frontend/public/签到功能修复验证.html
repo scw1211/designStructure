@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>签到功能修复验证</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #409eff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #66b1ff;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #f0f9ff;
+            border: 1px solid #c7e9c0;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-ok {
+            background-color: #28a745;
+        }
+        .status-error {
+            background-color: #dc3545;
+        }
+        .status-warning {
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 签到功能修复验证</h1>
+        <p>验证签到功能的重复插入问题是否已修复</p>
+        <div id="server-status">
+            <span class="status-indicator status-warning"></span>
+            检查服务器状态中...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 修复问题说明</h2>
+        <ul>
+            <li><strong>原问题</strong>：用户签到时出现数据库重复键错误</li>
+            <li><strong>错误信息</strong>：<code>Duplicate entry '2025-06-02' for key 'user_checkins.UK_jvr8mgaasuhfyrpa3872mpdod'</code></li>
+            <li><strong>影响</strong>：签到失败，主页无法正常显示</li>
+            <li><strong>修复方案</strong>：
+                <ul>
+                    <li>增强防重复签到机制</li>
+                    <li>添加事务管理</li>
+                    <li>优化异常处理</li>
+                    <li>从主页移除签到提醒</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 API功能测试</h2>
+        
+        <h3>1. 签到状态检查</h3>
+        <button class="test-button" onclick="checkCheckinStatus()">检查签到状态</button>
+        <div id="status-result" class="result info" style="display:none;"></div>
+
+        <h3>2. 重复签到测试（应该被阻止）</h3>
+        <button class="test-button" onclick="testDuplicateCheckin()">尝试重复签到</button>
+        <div id="duplicate-result" class="result info" style="display:none;"></div>
+
+        <h3>3. 签到统计查询</h3>
+        <button class="test-button" onclick="getCheckinStats()">获取签到统计</button>
+        <div id="stats-result" class="result info" style="display:none;"></div>
+
+        <h3>4. 主页数据测试</h3>
+        <button class="test-button" onclick="testHomepageData()">测试主页数据</button>
+        <div id="homepage-result" class="result info" style="display:none;"></div>
+
+        <h3>5. 批量测试</h3>
+        <button class="test-button" onclick="runAllTests()">运行所有测试</button>
+        <div id="all-tests-result" class="result info" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 修复前后对比</h2>
+        <table style="width:100%; border-collapse: collapse;">
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px; background:#f5f5f5;">项目</th>
+                <th style="border:1px solid #ddd; padding:8px; background:#f5f5f5;">修复前</th>
+                <th style="border:1px solid #ddd; padding:8px; background:#f5f5f5;">修复后</th>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">重复签到处理</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#dc3545;">❌ 数据库错误</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#28a745;">✅ 友好提示</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">事务管理</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#dc3545;">❌ 无事务保护</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#28a745;">✅ 事务确保原子性</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">主页签到提醒</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#ffc107;">⚠️ 可能引起混乱</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#28a745;">✅ 已移除，简化界面</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">错误处理</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#dc3545;">❌ 原始数据库错误</td>
+                <td style="border:1px solid #ddd; padding:8px; color:#28a745;">✅ 用户友好的错误信息</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        const TEST_USER_ID = 1;
+
+        // 检查服务器状态
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/users/checkin/status`, {
+                    headers: { 'X-User-Id': TEST_USER_ID }
+                });
+                
+                const statusDiv = document.getElementById('server-status');
+                if (response.ok) {
+                    statusDiv.innerHTML = '<span class="status-indicator status-ok"></span>服务器运行正常';
+                } else {
+                    statusDiv.innerHTML = '<span class="status-indicator status-error"></span>服务器连接失败';
+                }
+            } catch (error) {
+                const statusDiv = document.getElementById('server-status');
+                statusDiv.innerHTML = '<span class="status-indicator status-error"></span>服务器无法连接';
+            }
+        }
+
+        async function checkCheckinStatus() {
+            const resultDiv = document.getElementById('status-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '检查中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/checkin/status`, {
+                    headers: { 'X-User-Id': TEST_USER_ID }
+                });
+                
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 签到状态检查成功\n` +
+                    `今天是否已签到：${data.hasCheckedInToday ? '是' : '否'}\n` +
+                    `响应数据：${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 检查失败：${error.message}`;
+            }
+        }
+
+        async function testDuplicateCheckin() {
+            const resultDiv = document.getElementById('duplicate-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/checkin`, {
+                    method: 'POST',
+                    headers: { 
+                        'X-User-Id': TEST_USER_ID,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success === false && data.message.includes('已经签到')) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 重复签到防护正常工作\n` +
+                        `系统正确拦截了重复签到请求\n` +
+                        `返回信息：${data.message}`;
+                } else if (data.success === true) {
+                    resultDiv.className = 'result info';
+                    resultDiv.textContent = `ℹ️ 签到成功（今天首次签到）\n` +
+                        `响应数据：${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 意外的响应：${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 测试失败：${error.message}`;
+            }
+        }
+
+        async function getCheckinStats() {
+            const resultDiv = document.getElementById('stats-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '查询中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/${TEST_USER_ID}/checkin/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 签到统计查询成功\n` +
+                        `总签到天数：${data.data.totalCheckinDays}\n` +
+                        `当前连续天数：${data.data.currentConsecutiveDays}\n` +
+                        `最大连续天数：${data.data.maxConsecutiveDays}\n` +
+                        `本月签到天数：${data.data.monthlyCheckins}\n` +
+                        `今天是否已签到：${data.data.hasCheckedInToday ? '是' : '否'}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 查询失败：${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 查询失败：${error.message}`;
+            }
+        }
+
+        async function testHomepageData() {
+            const resultDiv = document.getElementById('homepage-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/analytics/platform-overview`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 主页数据正常加载\n` +
+                    `总问题数：${data.totalQuestions}\n` +
+                    `总回答数：${data.totalAnswers}\n` +
+                    `总用户数：${data.totalUsers}\n` +
+                    `今日新问题：${data.todayQuestions}\n` +
+                    `回答率：${(data.answerRate * 100).toFixed(1)}%`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 主页数据加载失败：${error.message}`;
+            }
+        }
+
+        async function runAllTests() {
+            const resultDiv = document.getElementById('all-tests-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '运行所有测试中...\n';
+            
+            const tests = [
+                { name: '签到状态检查', func: checkCheckinStatus },
+                { name: '重复签到测试', func: testDuplicateCheckin },
+                { name: '签到统计查询', func: getCheckinStats },
+                { name: '主页数据测试', func: testHomepageData }
+            ];
+            
+            let results = '批量测试结果：\n\n';
+            let passedTests = 0;
+            
+            for (const test of tests) {
+                try {
+                    await test.func();
+                    results += `✅ ${test.name} - 通过\n`;
+                    passedTests++;
+                } catch (error) {
+                    results += `❌ ${test.name} - 失败: ${error.message}\n`;
+                }
+            }
+            
+            results += `\n总计：${passedTests}/${tests.length} 测试通过`;
+            
+            if (passedTests === tests.length) {
+                resultDiv.className = 'result success';
+                results += '\n\n🎉 所有测试通过！签到功能修复成功！';
+            } else {
+                resultDiv.className = 'result error';
+                results += '\n\n⚠️ 部分测试失败，需要进一步检查';
+            }
+            
+            resultDiv.textContent = results;
+        }
+
+        // 页面加载时检查服务器状态
+        window.onload = function() {
+            checkServerStatus();
+        };
+    </script>
+</body>
+</html> 

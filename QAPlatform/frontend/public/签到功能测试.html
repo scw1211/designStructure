@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>签到功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-section h3 {
+            color: #555;
+            margin-top: 0;
+        }
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f0f0f0;
+            border-left: 4px solid #4ECDC4;
+        }
+        .error {
+            border-left-color: #FF6B6B;
+            background: #ffe6e6;
+        }
+        .success {
+            border-left-color: #52c41a;
+            background: #f6ffed;
+        }
+        .user-input {
+            margin: 10px 0;
+        }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100px;
+        }
+        label {
+            display: inline-block;
+            width: 80px;
+            font-weight: bold;
+        }
+        .stats-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .checkin-history {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 签到功能测试</h1>
+        
+        <div class="test-section">
+            <h3>📝 设置测试用户</h3>
+            <div class="user-input">
+                <label>用户ID:</label>
+                <input type="number" id="userId" value="1" min="1">
+                <button onclick="setUserId()">设置用户</button>
+            </div>
+            <div class="result" id="userResult">当前用户ID: 1</div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ 每日签到</h3>
+            <button onclick="dailyCheckin()">立即签到</button>
+            <div class="result" id="checkinResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 签到状态检查</h3>
+            <button onclick="checkStatus()">检查今日签到状态</button>
+            <div class="result" id="statusResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📈 签到统计</h3>
+            <button onclick="getStats()">获取签到统计</button>
+            <div class="result" id="statsResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📅 签到历史</h3>
+            <button onclick="getHistory()">获取签到历史</button>
+            <div class="result" id="historyResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎁 答案采纳奖励测试</h3>
+            <p>当回答被采纳时，用户将获得50声望值奖励</p>
+            <div class="user-input">
+                <label>问题ID:</label>
+                <input type="number" id="questionId" value="1" min="1">
+                <label>回答ID:</label>
+                <input type="number" id="answerId" value="1" min="1">
+                <button onclick="acceptAnswer()">采纳回答</button>
+            </div>
+            <div class="result" id="acceptResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = 1;
+        const API_BASE = 'http://localhost:8080/api';
+
+        function setUserId() {
+            const userId = document.getElementById('userId').value;
+            if (userId && userId > 0) {
+                currentUserId = userId;
+                document.getElementById('userResult').innerHTML = 
+                    `<span style="color: #52c41a;">✅ 当前用户ID: ${currentUserId}</span>`;
+                document.getElementById('userResult').className = 'result success';
+            }
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const defaultOptions = {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUserId.toString()
+                    }
+                };
+                
+                const response = await fetch(url, {
+                    ...defaultOptions,
+                    ...options,
+                    headers: {
+                        ...defaultOptions.headers,
+                        ...options.headers
+                    }
+                });
+                
+                const data = await response.json();
+                return { status: response.status, data };
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        async function dailyCheckin() {
+            const result = await makeRequest(`${API_BASE}/users/checkin`, {
+                method: 'POST'
+            });
+            
+            const resultDiv = document.getElementById('checkinResult');
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ 请求错误: ${result.error}</span>`;
+                resultDiv.className = 'result error';
+            } else if (result.data.success) {
+                resultDiv.innerHTML = `
+                    <div style="color: #52c41a;">
+                        <h4>🎉 ${result.data.message}</h4>
+                        <p><strong>连续签到天数:</strong> ${result.data.consecutiveDays} 天</p>
+                        <p><strong>获得声望:</strong> +${result.data.reputationEarned}</p>
+                        <p><strong>当前总声望:</strong> ${result.data.totalReputation}</p>
+                        <p><strong>签到日期:</strong> ${result.data.checkinDate}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result success';
+            } else {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ ${result.data.message}</span>`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function checkStatus() {
+            const result = await makeRequest(`${API_BASE}/users/checkin/status`);
+            
+            const resultDiv = document.getElementById('statusResult');
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ 请求错误: ${result.error}</span>`;
+                resultDiv.className = 'result error';
+            } else if (result.data.success) {
+                const hasChecked = result.data.hasCheckedInToday;
+                resultDiv.innerHTML = `
+                    <div style="color: ${hasChecked ? '#52c41a' : '#1890ff'};">
+                        <h4>${hasChecked ? '✅ 今日已签到' : '⏰ 今日未签到'}</h4>
+                        <p>状态: ${hasChecked ? '已完成' : '待签到'}</p>
+                    </div>
+                `;
+                resultDiv.className = `result ${hasChecked ? 'success' : ''}`;
+            } else {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ ${result.data.message}</span>`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function getStats() {
+            const result = await makeRequest(`${API_BASE}/users/${currentUserId}/checkin/stats`);
+            
+            const resultDiv = document.getElementById('statsResult');
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ 请求错误: ${result.error}</span>`;
+                resultDiv.className = 'result error';
+            } else if (result.data.success) {
+                const stats = result.data.data;
+                resultDiv.innerHTML = `
+                    <div class="stats-card">
+                        <h4>📊 签到统计数据</h4>
+                        <p><strong>总签到天数:</strong> ${stats.totalCheckinDays} 天</p>
+                        <p><strong>最长连续签到:</strong> ${stats.maxConsecutiveDays} 天</p>
+                        <p><strong>当前连续签到:</strong> ${stats.currentConsecutiveDays} 天</p>
+                        <p><strong>本月签到:</strong> ${stats.monthlyCheckins} 天</p>
+                        <p><strong>今日签到状态:</strong> ${stats.hasCheckedInToday ? '✅ 已签到' : '❌ 未签到'}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result success';
+            } else {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ ${result.data.message}</span>`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function getHistory() {
+            const result = await makeRequest(`${API_BASE}/users/${currentUserId}/checkin/history?page=0&size=10`);
+            
+            const resultDiv = document.getElementById('historyResult');
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ 请求错误: ${result.error}</span>`;
+                resultDiv.className = 'result error';
+            } else if (result.data.success) {
+                const history = result.data.data;
+                let historyHtml = `
+                    <h4>📅 签到历史记录 (共 ${result.data.totalElements} 条)</h4>
+                    <div class="checkin-history">
+                `;
+                
+                if (history.length === 0) {
+                    historyHtml += '<p>暂无签到记录</p>';
+                } else {
+                    history.forEach(record => {
+                        historyHtml += `
+                            <div style="border-bottom: 1px solid #eee; padding: 8px 0; margin: 5px 0;">
+                                <strong>日期:</strong> ${record.checkinDate} | 
+                                <strong>连续天数:</strong> ${record.consecutiveDays} | 
+                                <strong>获得声望:</strong> +${record.reputationEarned}
+                            </div>
+                        `;
+                    });
+                }
+                
+                historyHtml += '</div>';
+                resultDiv.innerHTML = historyHtml;
+                resultDiv.className = 'result success';
+            } else {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ ${result.data.message}</span>`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function acceptAnswer() {
+            const questionId = document.getElementById('questionId').value;
+            const answerId = document.getElementById('answerId').value;
+            
+            if (!questionId || !answerId) {
+                document.getElementById('acceptResult').innerHTML = 
+                    `<span style="color: #ff4d4f;">❌ 请输入问题ID和回答ID</span>`;
+                document.getElementById('acceptResult').className = 'result error';
+                return;
+            }
+            
+            const result = await makeRequest(`${API_BASE}/answers/${answerId}/accept`, {
+                method: 'POST',
+                headers: {
+                    'X-User-Id': currentUserId.toString()
+                }
+            });
+            
+            const resultDiv = document.getElementById('acceptResult');
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ 请求错误: ${result.error}</span>`;
+                resultDiv.className = 'result error';
+            } else if (result.data.success) {
+                resultDiv.innerHTML = `
+                    <div style="color: #52c41a;">
+                        <h4>🎉 ${result.data.message}</h4>
+                        <p>回答作者将获得50声望值奖励！</p>
+                    </div>
+                `;
+                resultDiv.className = 'result success';
+            } else {
+                resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ ${result.data.message}</span>`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            setUserId();
+        };
+    </script>
+</body>
+</html> 

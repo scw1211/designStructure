@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗄️ 数据库草稿功能测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .status {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .status-item {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            min-width: 120px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .feature-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-section:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .draft-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .draft-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .draft-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .draft-item h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .draft-item p {
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .draft-meta {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .draft-tags {
+            margin-bottom: 10px;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 5px;
+            color: #495057;
+        }
+        
+        .response-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .navigation {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            text-align: center;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ 数据库草稿功能测试</h1>
+            <p>验证草稿数据真正保存到MySQL数据库</p>
+        </div>
+
+        <div class="status" id="statusSection">
+            <div class="status-item status-info">🔄 正在检查服务状态...</div>
+        </div>
+
+        <div class="feature-section">
+            <h2>📊 数据库草稿验证</h2>
+            <p>现在草稿数据会真正保存到MySQL数据库的 <code>question_drafts</code> 表中，不再是假保存！</p>
+            
+            <div class="draft-form">
+                <h3>💾 保存新草稿到数据库</h3>
+                <div class="form-group">
+                    <label>草稿标题：</label>
+                    <input type="text" id="draftTitle" placeholder="输入草稿标题" value="测试数据库保存">
+                </div>
+                <div class="form-group">
+                    <label>草稿内容：</label>
+                    <textarea id="draftContent" placeholder="输入草稿内容">这是一个测试草稿，用来验证数据是否真正保存到数据库中。</textarea>
+                </div>
+                <div class="form-group">
+                    <label>标签（用逗号分隔）：</label>
+                    <input type="text" id="draftTags" placeholder="Java,Spring,数据库" value="测试,数据库,MySQL">
+                </div>
+                <div class="form-group">
+                    <label>草稿名称：</label>
+                    <input type="text" id="draftName" placeholder="给草稿起个名字" value="数据库测试草稿">
+                </div>
+                <button class="btn btn-primary" onclick="saveDraft()">💾 保存到数据库</button>
+                <button class="btn btn-success" onclick="saveDraftAuto()">🔄 自动保存</button>
+            </div>
+
+            <div id="saveResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="feature-section">
+            <h2>📋 草稿列表（从数据库读取）</h2>
+            <button class="btn btn-info" onclick="loadDrafts()">🔄 刷新草稿列表</button>
+            <button class="btn btn-danger" onclick="clearAllDrafts()">🗑️ 清理空草稿</button>
+            
+            <div id="draftsList" class="draft-list">
+                <p>点击"刷新草稿列表"按钮从数据库加载草稿...</p>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>🧪 API测试结果</h2>
+            <button class="btn btn-info" onclick="testAllAPIs()">🚀 测试所有API</button>
+            <div id="apiResults" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="navigation">
+            <a href="/" class="nav-link">🏠 返回主页</a>
+            <a href="/ask" class="nav-link">❓ 提问页面</a>
+            <a href="草稿功能恢复验证.html" class="nav-link">📝 草稿验证</a>
+        </div>
+    </div>
+
+    <script>
+        let backendUrl = 'http://localhost:8080/api';
+        let draftsCache = [];
+
+        // 页面加载时检查状态
+        window.onload = function() {
+            checkSystemStatus();
+            loadDrafts();
+        };
+
+        // 检查系统状态
+        async function checkSystemStatus() {
+            const statusSection = document.getElementById('statusSection');
+            
+            try {
+                // 检查后端服务
+                const response = await fetch(`${backendUrl}/user/drafts`);
+                if (response.ok) {
+                    statusSection.innerHTML = `
+                        <div class="status-item status-success">✅ 后端服务正常</div>
+                        <div class="status-item status-success">✅ 数据库连接正常</div>
+                        <div class="status-item status-success">✅ 草稿API可用</div>
+                    `;
+                } else {
+                    statusSection.innerHTML = `
+                        <div class="status-item status-error">❌ 后端服务异常</div>
+                    `;
+                }
+            } catch (error) {
+                statusSection.innerHTML = `
+                    <div class="status-item status-error">❌ 无法连接后端服务</div>
+                    <div class="status-item status-info">请确保后端服务已启动</div>
+                `;
+            }
+        }
+
+        // 保存草稿
+        async function saveDraft() {
+            const title = document.getElementById('draftTitle').value;
+            const content = document.getElementById('draftContent').value;
+            const tagsStr = document.getElementById('draftTags').value;
+            const draftName = document.getElementById('draftName').value;
+            
+            const tags = tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            const draftData = {
+                title: title,
+                content: content,
+                tags: tags,
+                draftName: draftName,
+                autoSaved: false
+            };
+
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(draftData)
+                });
+
+                const result = await response.json();
+                displayResponse('saveResponse', result);
+                
+                if (result.success) {
+                    setTimeout(() => loadDrafts(), 1000); // 1秒后刷新列表
+                }
+            } catch (error) {
+                displayResponse('saveResponse', { error: error.message });
+            }
+        }
+
+        // 自动保存草稿
+        async function saveDraftAuto() {
+            const title = document.getElementById('draftTitle').value;
+            const content = document.getElementById('draftContent').value;
+            const tagsStr = document.getElementById('draftTags').value;
+            
+            const tags = tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            const draftData = {
+                title: title || '自动保存草稿',
+                content: content || '自动保存的内容',
+                tags: tags.length > 0 ? tags : ['自动保存'],
+                autoSaved: true
+            };
+
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(draftData)
+                });
+
+                const result = await response.json();
+                displayResponse('saveResponse', result);
+                
+                if (result.success) {
+                    setTimeout(() => loadDrafts(), 1000);
+                }
+            } catch (error) {
+                displayResponse('saveResponse', { error: error.message });
+            }
+        }
+
+        // 加载草稿列表
+        async function loadDrafts() {
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts`);
+                if (response.ok) {
+                    draftsCache = await response.json();
+                    displayDrafts(draftsCache);
+                } else {
+                    document.getElementById('draftsList').innerHTML = `
+                        <p style="color: red;">❌ 加载草稿失败: ${response.status}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('draftsList').innerHTML = `
+                    <p style="color: red;">❌ 网络错误: ${error.message}</p>
+                `;
+            }
+        }
+
+        // 显示草稿列表
+        function displayDrafts(drafts) {
+            const draftsList = document.getElementById('draftsList');
+            
+            if (drafts.length === 0) {
+                draftsList.innerHTML = `
+                    <p>📭 暂无草稿数据</p>
+                    <p>您可以通过上面的表单创建新草稿来测试数据库保存功能。</p>
+                `;
+                return;
+            }
+
+            let html = `<h3>📝 共找到 ${drafts.length} 个草稿（从数据库读取）</h3>`;
+            
+            drafts.forEach(draft => {
+                const tags = Array.isArray(draft.tags) ? draft.tags : [];
+                const autoSavedBadge = draft.autoSaved ? 
+                    '<span style="background: #ffc107; color: #856404; padding: 2px 6px; border-radius: 3px; font-size: 10px;">自动保存</span>' : 
+                    '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">手动保存</span>';
+                
+                html += `
+                    <div class="draft-item">
+                        <h4>${draft.title || '无标题'} ${autoSavedBadge}</h4>
+                        <p>${draft.content || '无内容'}</p>
+                        <div class="draft-tags">
+                            ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="draft-meta">
+                            📅 创建: ${new Date(draft.createdAt).toLocaleString()} | 
+                            🔄 更新: ${new Date(draft.updatedAt).toLocaleString()} | 
+                            🆔 ID: ${draft.id}
+                            ${draft.draftName ? ` | 📝 名称: ${draft.draftName}` : ''}
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteDraft(${draft.id})">🗑️ 删除</button>
+                        <button class="btn btn-info" onclick="loadDraftDetail(${draft.id})">👁️ 详情</button>
+                    </div>
+                `;
+            });
+            
+            draftsList.innerHTML = html;
+        }
+
+        // 删除草稿
+        async function deleteDraft(draftId) {
+            if (!confirm('确定要删除这个草稿吗？')) return;
+            
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts/${draftId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+                
+                if (result.success) {
+                    loadDrafts(); // 刷新列表
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 清理空草稿
+        async function clearAllDrafts() {
+            if (!confirm('确定要清理所有空草稿吗？')) return;
+            
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts/cleanup`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+                
+                if (result.success) {
+                    loadDrafts(); // 刷新列表
+                }
+            } catch (error) {
+                alert('清理失败: ' + error.message);
+            }
+        }
+
+        // 加载草稿详情
+        async function loadDraftDetail(draftId) {
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts/${draftId}`);
+                const draft = await response.json();
+                
+                if (response.ok) {
+                    alert(`草稿详情:\n标题: ${draft.title}\n内容: ${draft.content}\n标签: ${JSON.stringify(draft.tags)}\n创建时间: ${draft.createdAt}`);
+                } else {
+                    alert('获取草稿详情失败');
+                }
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+            }
+        }
+
+        // 测试所有API
+        async function testAllAPIs() {
+            const results = [];
+            
+            // 测试获取草稿列表
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts`);
+                results.push(`✅ GET /user/drafts: ${response.status} - ${response.ok ? '成功' : '失败'}`);
+            } catch (error) {
+                results.push(`❌ GET /user/drafts: 错误 - ${error.message}`);
+            }
+            
+            // 测试保存草稿
+            try {
+                const response = await fetch(`${backendUrl}/user/drafts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: 'API测试草稿',
+                        content: '这是API测试创建的草稿',
+                        tags: ['API', '测试'],
+                        autoSaved: true
+                    })
+                });
+                results.push(`✅ POST /user/drafts: ${response.status} - ${response.ok ? '成功' : '失败'}`);
+            } catch (error) {
+                results.push(`❌ POST /user/drafts: 错误 - ${error.message}`);
+            }
+            
+            displayResponse('apiResults', { results: results });
+            
+            // 刷新草稿列表
+            setTimeout(() => loadDrafts(), 1000);
+        }
+
+        // 显示响应结果
+        function displayResponse(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+    </script>
+</body>
+</html> 

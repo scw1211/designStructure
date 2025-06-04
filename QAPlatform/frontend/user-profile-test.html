@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户个人资料测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #f0f9ff; border-left: 4px solid #67c23a; }
+        .error { background: #fff5f5; border-left: 4px solid #f56c6c; }
+        .user-info { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .btn { padding: 8px 16px; margin: 5px; background: #409eff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #66b1ff; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; max-height: 300px; }
+        .question-item { border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .loading { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 用户个人资料页面测试</h1>
+        
+        <div class="test-section">
+            <h3>测试步骤</h3>
+            <button class="btn" onclick="testUserInfo()">1. 测试用户信息API</button>
+            <button class="btn" onclick="testUserStats()">2. 测试用户统计API</button>
+            <button class="btn" onclick="testUserQuestions()">3. 测试用户问题API</button>
+            <button class="btn" onclick="clearLogs()">清除日志</button>
+        </div>
+        
+        <div id="status" class="test-section">准备开始测试...</div>
+        
+        <h2>API测试结果</h2>
+        <div id="test-results"></div>
+        
+        <h2>用户信息</h2>
+        <div id="user-display">暂无数据</div>
+        
+        <h2>用户问题列表</h2>
+        <div id="questions-display">暂无数据</div>
+    </div>
+
+    <script>
+        let statusDiv = document.getElementById('status');
+        let resultsDiv = document.getElementById('test-results');
+        let userDiv = document.getElementById('user-display');
+        let questionsDiv = document.getElementById('questions-display');
+        
+        function clearLogs() {
+            resultsDiv.innerHTML = '';
+            userDiv.innerHTML = '暂无数据';
+            questionsDiv.innerHTML = '暂无数据';
+            statusDiv.innerHTML = '日志已清除';
+            statusDiv.className = 'test-section';
+        }
+        
+        async function testUserInfo() {
+            statusDiv.innerHTML = '正在测试用户信息API...';
+            statusDiv.className = 'test-section';
+            
+            try {
+                const response = await fetch('/api/users/1');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const userData = await response.json();
+                
+                resultsDiv.innerHTML += `
+                    <div class="test-section success">
+                        <h4>✅ 用户信息API测试成功</h4>
+                        <div class="user-info">
+                            <strong>用户名:</strong> ${userData.username}<br>
+                            <strong>邮箱:</strong> ${userData.email || '未设置'}<br>
+                            <strong>角色:</strong> ${userData.role}<br>
+                            <strong>声望:</strong> ${userData.reputation || 0}<br>
+                            <strong>个人简介:</strong> ${userData.bio || '未设置'}<br>
+                            <strong>注册时间:</strong> ${new Date(userData.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                `;
+                
+                userDiv.innerHTML = `
+                    <div class="user-info">
+                        <h3>👤 ${userData.username}</h3>
+                        <p><strong>ID:</strong> ${userData.id}</p>
+                        <p><strong>邮箱:</strong> ${userData.email || '未设置'}</p>
+                        <p><strong>角色:</strong> ${userData.role}</p>
+                        <p><strong>声望:</strong> ${userData.reputation || 0}</p>
+                        <p><strong>个人简介:</strong> ${userData.bio || '未设置'}</p>
+                        <p><strong>注册时间:</strong> ${new Date(userData.createdAt).toLocaleString()}</p>
+                        <p><strong>头像:</strong> ${userData.avatar || '未设置'}</p>
+                    </div>
+                `;
+                
+                statusDiv.innerHTML = '✅ 用户信息API测试成功';
+                statusDiv.className = 'test-section success';
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="test-section error">
+                        <h4>❌ 用户信息API测试失败</h4>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+                statusDiv.innerHTML = '❌ 用户信息API测试失败: ' + error.message;
+                statusDiv.className = 'test-section error';
+            }
+        }
+        
+        async function testUserStats() {
+            statusDiv.innerHTML = '正在测试用户统计API...';
+            statusDiv.className = 'test-section';
+            
+            try {
+                const response = await fetch('/api/users/1/stats');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const statsData = await response.json();
+                
+                resultsDiv.innerHTML += `
+                    <div class="test-section success">
+                        <h4>✅ 用户统计API测试成功</h4>
+                        <div class="user-info">
+                            <strong>问题数量:</strong> ${statsData.questionCount}<br>
+                            <strong>回答数量:</strong> ${statsData.answerCount}<br>
+                            <strong>采纳数量:</strong> ${statsData.acceptedAnswers}<br>
+                            <strong>粉丝数量:</strong> ${statsData.followersCount}<br>
+                            <strong>关注数量:</strong> ${statsData.followingCount}
+                        </div>
+                    </div>
+                `;
+                
+                statusDiv.innerHTML = '✅ 用户统计API测试成功';
+                statusDiv.className = 'test-section success';
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="test-section error">
+                        <h4>❌ 用户统计API测试失败</h4>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+                statusDiv.innerHTML = '❌ 用户统计API测试失败: ' + error.message;
+                statusDiv.className = 'test-section error';
+            }
+        }
+        
+        async function testUserQuestions() {
+            statusDiv.innerHTML = '正在测试用户问题API...';
+            statusDiv.className = 'test-section';
+            
+            try {
+                const response = await fetch('/api/users/1/questions?page=0&size=10');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const questionsData = await response.json();
+                let questions = [];
+                
+                if (questionsData.content && Array.isArray(questionsData.content)) {
+                    questions = questionsData.content;
+                } else if (Array.isArray(questionsData)) {
+                    questions = questionsData;
+                }
+                
+                resultsDiv.innerHTML += `
+                    <div class="test-section success">
+                        <h4>✅ 用户问题API测试成功</h4>
+                        <p>找到 ${questions.length} 个问题</p>
+                    </div>
+                `;
+                
+                if (questions.length === 0) {
+                    questionsDiv.innerHTML = '<div class="test-section">该用户暂无问题</div>';
+                } else {
+                    questionsDiv.innerHTML = questions.map(q => `
+                        <div class="question-item">
+                            <h4>${q.title}</h4>
+                            <p>${q.content.substring(0, 200)}...</p>
+                            <div style="font-size: 12px; color: #666;">
+                                <span>回答: ${q.answerCount}</span> |
+                                <span>浏览: ${q.viewCount || 0}</span> |
+                                <span>标签: ${q.tags ? q.tags.map(t => t.name).join(', ') : '无'}</span> |
+                                <span>创建时间: ${new Date(q.createdAt).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                statusDiv.innerHTML = `✅ 用户问题API测试成功，找到 ${questions.length} 个问题`;
+                statusDiv.className = 'test-section success';
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="test-section error">
+                        <h4>❌ 用户问题API测试失败</h4>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+                statusDiv.innerHTML = '❌ 用户问题API测试失败: ' + error.message;
+                statusDiv.className = 'test-section error';
+            }
+        }
+        
+        // 页面加载后自动测试
+        window.addEventListener('load', async () => {
+            await new Promise(resolve => setTimeout(resolve, 3000)); // 等待服务启动
+            await testUserInfo();
+            await testUserStats();
+            await testUserQuestions();
+        });
+    </script>
+</body>
+</html> 

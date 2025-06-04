@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业级高级数据库功能展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-content {
+            padding: 20px;
+        }
+
+        .api-test {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .api-url {
+            font-family: 'Courier New', monospace;
+            background: #2c3e50;
+            color: #00ff88;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+
+        .result-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .db-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .summary-section h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .summary-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 企业级高级数据库功能展示</h1>
+            <div class="subtitle">QA平台 - 高级分析与智能统计系统</div>
+        </div>
+
+        <div class="main-content">
+            <!-- 数据库统计概览 -->
+            <div class="db-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="badges-count">11</span>
+                    <span class="stat-label">徽章系统</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="user-badges-count">4</span>
+                    <span class="stat-label">已颁发徽章</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="activity-logs-count">12</span>
+                    <span class="stat-label">活动日志</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="user-stats-count">3</span>
+                    <span class="stat-label">用户统计</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="views-count">6</span>
+                    <span class="stat-label">数据库视图</span>
+                </div>
+            </div>
+
+            <!-- 功能测试区域 -->
+            <div class="feature-grid">
+                <!-- 平台概览统计 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">📊</span>
+                        平台概览统计
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>获取平台总体统计数据，包括用户、问题、回答、徽章等关键指标
+                            <div class="api-url">GET /api/analytics/platform-overview</div>
+                            <button class="test-button" onclick="testPlatformOverview()">测试此功能</button>
+                            <div id="platform-overview-status" class="status loading">等待测试</div>
+                            <div id="platform-overview-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 热门问题推荐 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">🔥</span>
+                        热门问题推荐
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>基于复杂算法计算问题热度，包括浏览量、回答数、投票数和时间衰减
+                            <div class="api-url">GET /api/analytics/trending-questions</div>
+                            <button class="test-button" onclick="testTrendingQuestions()">测试此功能</button>
+                            <div id="trending-questions-status" class="status loading">等待测试</div>
+                            <div id="trending-questions-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 专家用户识别 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">🎓</span>
+                        专家用户识别
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>智能识别平台专家用户，基于被采纳回答、投票数和专业领域分析
+                            <div class="api-url">GET /api/analytics/expert-users</div>
+                            <button class="test-button" onclick="testExpertUsers()">测试此功能</button>
+                            <div id="expert-users-status" class="status loading">等待测试</div>
+                            <div id="expert-users-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 标签统计分析 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">🏷️</span>
+                        标签统计分析
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>深度分析标签使用情况，包括热度评分、贡献者分析和趋势预测
+                            <div class="api-url">GET /api/analytics/tag-statistics</div>
+                            <button class="test-button" onclick="testTagStatistics()">测试此功能</button>
+                            <div id="tag-statistics-status" class="status loading">等待测试</div>
+                            <div id="tag-statistics-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 活动时间线 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">📈</span>
+                        活动时间线
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>展示平台活动趋势，包括每日问题、回答数量和用户参与度分析
+                            <div class="api-url">GET /api/analytics/activity-timeline</div>
+                            <button class="test-button" onclick="testActivityTimeline()">测试此功能</button>
+                            <div id="activity-timeline-status" class="status loading">等待测试</div>
+                            <div id="activity-timeline-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户排行榜 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">🏆</span>
+                        用户排行榜
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>多维度用户排名系统，包括声誉、贡献度和用户级别分类
+                            <div class="api-url">GET /api/analytics/user-rankings</div>
+                            <button class="test-button" onclick="testUserRankings()">测试此功能</button>
+                            <div id="user-rankings-status" class="status loading">等待测试</div>
+                            <div id="user-rankings-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 徽章统计 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">🏅</span>
+                        徽章统计
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>完整的徽章系统统计，包括已颁发徽章和获得者信息
+                            <div class="api-url">GET /api/analytics/badges/awarded</div>
+                            <button class="test-button" onclick="testBadgesAwarded()">测试此功能</button>
+                            <div id="badges-awarded-status" class="status loading">等待测试</div>
+                            <div id="badges-awarded-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 搜索洞察 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <span class="icon">🔍</span>
+                        搜索洞察
+                    </div>
+                    <div class="feature-content">
+                        <div class="api-test">
+                            <strong>功能描述：</strong>用户搜索行为分析，热门搜索词统计和搜索效果评估
+                            <div class="api-url">GET /api/analytics/search-insights</div>
+                            <button class="test-button" onclick="testSearchInsights()">测试此功能</button>
+                            <div id="search-insights-status" class="status loading">等待测试</div>
+                            <div id="search-insights-result" class="result-display" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 一键测试所有功能 -->
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="test-button" style="font-size: 1.2rem; padding: 15px 30px;" onclick="testAllFeatures()">
+                    🚀 一键测试所有高级功能
+                </button>
+            </div>
+
+            <!-- 功能总结 -->
+            <div class="summary-section">
+                <h3>🎯 企业级高级功能总结</h3>
+                <p>这些功能展示了QA平台的企业级数据分析能力，从简单的统计到复杂的用户行为分析和预测。</p>
+                
+                <div class="summary-list">
+                    <div class="summary-item">
+                        <strong>📊 数据库视图</strong><br>
+                        6个复杂视图支持高效查询
+                    </div>
+                    <div class="summary-item">
+                        <strong>🏅 徽章系统</strong><br>
+                        4级徽章体系激励用户参与
+                    </div>
+                    <div class="summary-item">
+                        <strong>📈 智能分析</strong><br>
+                        多维度数据分析和趋势预测
+                    </div>
+                    <div class="summary-item">
+                        <strong>🎓 专家识别</strong><br>
+                        AI驱动的专家用户识别算法
+                    </div>
+                    <div class="summary-item">
+                        <strong>🔥 热度算法</strong><br>
+                        时间衰减的内容热度计算
+                    </div>
+                    <div class="summary-item">
+                        <strong>📊 实时统计</strong><br>
+                        平台活动的实时监控分析
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseURL = 'http://localhost:8080/api/analytics';
+
+        async function testAPI(endpoint, statusElementId, resultElementId) {
+            const statusElement = document.getElementById(statusElementId);
+            const resultElement = document.getElementById(resultElementId);
+            
+            statusElement.className = 'status loading';
+            statusElement.textContent = '测试中...';
+            resultElement.style.display = 'none';
+
+            try {
+                const response = await fetch(`${baseURL}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusElement.className = 'status success';
+                    statusElement.textContent = '✅ 测试成功';
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                    resultElement.style.display = 'block';
+                } else {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = '❌ 测试失败';
+                    resultElement.textContent = `错误: ${data.message || '未知错误'}`;
+                    resultElement.style.display = 'block';
+                }
+            } catch (error) {
+                statusElement.className = 'status error';
+                statusElement.textContent = '❌ 连接失败';
+                resultElement.textContent = `网络错误: ${error.message}`;
+                resultElement.style.display = 'block';
+            }
+        }
+
+        async function testPlatformOverview() {
+            await testAPI('/platform-overview', 'platform-overview-status', 'platform-overview-result');
+        }
+
+        async function testTrendingQuestions() {
+            await testAPI('/trending-questions', 'trending-questions-status', 'trending-questions-result');
+        }
+
+        async function testExpertUsers() {
+            await testAPI('/expert-users', 'expert-users-status', 'expert-users-result');
+        }
+
+        async function testTagStatistics() {
+            await testAPI('/tag-statistics', 'tag-statistics-status', 'tag-statistics-result');
+        }
+
+        async function testActivityTimeline() {
+            await testAPI('/activity-timeline', 'activity-timeline-status', 'activity-timeline-result');
+        }
+
+        async function testUserRankings() {
+            await testAPI('/user-rankings', 'user-rankings-status', 'user-rankings-result');
+        }
+
+        async function testBadgesAwarded() {
+            await testAPI('/badges/awarded', 'badges-awarded-status', 'badges-awarded-result');
+        }
+
+        async function testSearchInsights() {
+            await testAPI('/search-insights', 'search-insights-status', 'search-insights-result');
+        }
+
+        async function testAllFeatures() {
+            const tests = [
+                testPlatformOverview,
+                testTrendingQuestions,
+                testExpertUsers,
+                testTagStatistics,
+                testActivityTimeline,
+                testUserRankings,
+                testBadgesAwarded,
+                testSearchInsights
+            ];
+
+            for (let i = 0; i < tests.length; i++) {
+                await tests[i]();
+                // 添加小延迟避免过于频繁的请求
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // 页面加载完成后自动测试平台概览
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testPlatformOverview();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

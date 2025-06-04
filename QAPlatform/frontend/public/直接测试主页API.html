@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页API直接测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .test-section { background: white; margin: 15px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .status { padding: 8px 12px; border-radius: 4px; margin: 8px 0; }
+        .success { background: #e7f5e7; color: #2d7d2d; border: 1px solid #b8e6b8; }
+        .error { background: #ffeaea; color: #d93025; border: 1px solid #ffb3b3; }
+        .info { background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; }
+        button { background: #409eff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #66b1ff; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+        .data-container { margin-top: 15px; }
+        .loading { color: #909399; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 主页API直接测试</h1>
+        
+        <div class="test-section">
+            <h3>📊 服务连接状态</h3>
+            <div id="connectionStatus">
+                <div class="status info">正在检查连接状态...</div>
+            </div>
+            <button onclick="checkConnection()">重新检查连接</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔥 主页所需API测试</h3>
+            <button onclick="testAllHomeAPIs()">测试所有主页API</button>
+            <button onclick="testPlatformOverview()">平台概览</button>
+            <button onclick="testExpertUsers()">专家用户</button>
+            <button onclick="testTrendingQuestions()">热门问题</button>
+            <button onclick="testTagStatistics()">标签统计</button>
+            <button onclick="testBadgeStatistics()">徽章统计</button>
+            <button onclick="testActivityTimeline()">活动时间线</button>
+            <div id="homeAPIResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 模拟Vue主页组件加载</h3>
+            <button onclick="simulateVueHome()">模拟Vue主页数据加载</button>
+            <div id="vueSimulation"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 网络诊断</h3>
+            <button onclick="networkDiagnostic()">网络诊断</button>
+            <div id="networkResults"></div>
+        </div>
+    </div>
+
+    <script>
+        let allResults = {};
+
+        function logMessage(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function logData(containerId, title, data) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'data-container';
+            div.innerHTML = `
+                <h4>${title}</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            container.appendChild(div);
+        }
+
+        async function checkConnection() {
+            const container = document.getElementById('connectionStatus');
+            container.innerHTML = '<div class="status loading">检查中...</div>';
+            
+            try {
+                const backendResponse = await fetch('http://localhost:8080/api/analytics/platform-overview');
+                const frontendResponse = await fetch('/api/analytics/platform-overview');
+                
+                container.innerHTML = '';
+                
+                if (backendResponse.ok) {
+                    logMessage('connectionStatus', '✅ 直接访问后端8080端口：成功', 'success');
+                } else {
+                    logMessage('connectionStatus', '❌ 直接访问后端8080端口：失败', 'error');
+                }
+                
+                if (frontendResponse.ok) {
+                    logMessage('connectionStatus', '✅ 通过前端代理访问：成功', 'success');
+                } else {
+                    logMessage('connectionStatus', '❌ 通过前端代理访问：失败', 'error');
+                }
+                
+            } catch (error) {
+                container.innerHTML = '';
+                logMessage('connectionStatus', `❌ 连接检查失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAPI(endpoint, description) {
+            try {
+                console.log(`🔄 正在测试: ${description} - ${endpoint}`);
+                const response = await fetch(endpoint);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log(`✅ ${description} 成功:`, data);
+                allResults[description] = { success: true, data, endpoint };
+                return { success: true, data, endpoint, description };
+            } catch (error) {
+                console.error(`❌ ${description} 失败:`, error);
+                allResults[description] = { success: false, error: error.message, endpoint };
+                return { success: false, error: error.message, endpoint, description };
+            }
+        }
+
+        async function testPlatformOverview() {
+            const container = document.getElementById('homeAPIResults');
+            container.innerHTML = '<div class="status loading">测试平台概览API...</div>';
+            
+            const result = await testAPI('/api/analytics/platform-overview', '平台概览');
+            
+            container.innerHTML = '';
+            if (result.success) {
+                logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                logData('homeAPIResults', result.description, result.data);
+            } else {
+                logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+            }
+        }
+
+        async function testExpertUsers() {
+            const result = await testAPI('/api/analytics/expert-users?limit=5', '专家用户');
+            const container = document.getElementById('homeAPIResults');
+            
+            if (result.success) {
+                logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                logData('homeAPIResults', result.description, result.data);
+            } else {
+                logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+            }
+        }
+
+        async function testTrendingQuestions() {
+            const result = await testAPI('/api/analytics/trending-questions?limit=6', '热门问题');
+            const container = document.getElementById('homeAPIResults');
+            
+            if (result.success) {
+                logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                logData('homeAPIResults', result.description, result.data);
+            } else {
+                logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+            }
+        }
+
+        async function testTagStatistics() {
+            const result = await testAPI('/api/analytics/tag-statistics?limit=10', '标签统计');
+            const container = document.getElementById('homeAPIResults');
+            
+            if (result.success) {
+                logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                logData('homeAPIResults', result.description, result.data);
+            } else {
+                logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+            }
+        }
+
+        async function testBadgeStatistics() {
+            const result = await testAPI('/api/analytics/badge-statistics', '徽章统计');
+            const container = document.getElementById('homeAPIResults');
+            
+            if (result.success) {
+                logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                logData('homeAPIResults', result.description, result.data);
+            } else {
+                logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+            }
+        }
+
+        async function testActivityTimeline() {
+            const result = await testAPI('/api/analytics/activity-timeline?days=7', '活动时间线');
+            const container = document.getElementById('homeAPIResults');
+            
+            if (result.success) {
+                logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                logData('homeAPIResults', result.description, result.data);
+            } else {
+                logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+            }
+        }
+
+        async function testAllHomeAPIs() {
+            const container = document.getElementById('homeAPIResults');
+            container.innerHTML = '<div class="status loading">测试所有主页API...</div>';
+            
+            allResults = {};
+            
+            const apis = [
+                { endpoint: '/api/analytics/platform-overview', desc: '平台概览' },
+                { endpoint: '/api/analytics/expert-users?limit=5', desc: '专家用户' },
+                { endpoint: '/api/analytics/trending-questions?limit=6', desc: '热门问题' },
+                { endpoint: '/api/analytics/tag-statistics?limit=10', desc: '标签统计' },
+                { endpoint: '/api/analytics/badge-statistics', desc: '徽章统计' },
+                { endpoint: '/api/analytics/activity-timeline?days=7', desc: '活动时间线' }
+            ];
+            
+            container.innerHTML = '';
+            
+            for (const api of apis) {
+                const result = await testAPI(api.endpoint, api.desc);
+                
+                if (result.success) {
+                    logMessage('homeAPIResults', `✅ ${result.description}：成功`, 'success');
+                    logData('homeAPIResults', result.description, result.data);
+                } else {
+                    logMessage('homeAPIResults', `❌ ${result.description}：${result.error}`, 'error');
+                }
+            }
+            
+            const successCount = Object.values(allResults).filter(r => r.success).length;
+            const totalCount = Object.keys(allResults).length;
+            
+            if (successCount === totalCount) {
+                logMessage('homeAPIResults', `🎉 所有API测试完成！成功: ${successCount}/${totalCount}`, 'success');
+            } else {
+                logMessage('homeAPIResults', `⚠️ API测试完成！成功: ${successCount}/${totalCount}`, 'error');
+            }
+        }
+
+        async function simulateVueHome() {
+            const container = document.getElementById('vueSimulation');
+            container.innerHTML = '<div class="status loading">模拟Vue主页组件加载...</div>';
+            
+            console.log('🏠 模拟Home页面挂载，开始加载高级数据...');
+            
+            try {
+                // 模拟Vue的Promise.all并行加载
+                const promises = [
+                    fetch('/api/analytics/platform-overview').then(r => r.json()),
+                    fetch('/api/analytics/expert-users?limit=5').then(r => r.json()),
+                    fetch('/api/analytics/trending-questions?limit=6').then(r => r.json()),
+                    fetch('/api/analytics/tag-statistics?limit=10').then(r => r.json()),
+                    fetch('/api/analytics/badge-statistics').then(r => r.json()),
+                    fetch('/api/analytics/activity-timeline?days=7').then(r => r.json())
+                ];
+                
+                const results = await Promise.all(promises);
+                
+                container.innerHTML = '';
+                logMessage('vueSimulation', '✅ 模拟Vue主页组件加载成功！', 'success');
+                logMessage('vueSimulation', `📊 平台概览: ${JSON.stringify(results[0])}`, 'info');
+                logMessage('vueSimulation', `👥 专家用户数量: ${results[1].length}`, 'info');
+                logMessage('vueSimulation', `🔥 热门问题数量: ${results[2].length}`, 'info');
+                logMessage('vueSimulation', `🏷️ 标签统计数量: ${results[3].length}`, 'info');
+                logMessage('vueSimulation', `🏆 徽章统计数量: ${results[4].length}`, 'info');
+                logMessage('vueSimulation', `📈 活动时间线数量: ${results[5].length}`, 'info');
+                
+                console.log('✅ 模拟Home页面高级数据加载完成', results);
+                
+            } catch (error) {
+                container.innerHTML = '';
+                logMessage('vueSimulation', `❌ 模拟Vue主页组件加载失败: ${error.message}`, 'error');
+                console.error('模拟数据加载失败:', error);
+            }
+        }
+
+        async function networkDiagnostic() {
+            const container = document.getElementById('networkResults');
+            container.innerHTML = '<div class="status loading">进行网络诊断...</div>';
+            
+            const tests = [
+                { name: '后端健康检查', url: 'http://localhost:8080/api/analytics/platform-overview' },
+                { name: '前端代理', url: '/api/analytics/platform-overview' },
+                { name: '前端服务', url: '/' },
+                { name: 'Vite开发服务器', url: 'http://localhost:5174/' }
+            ];
+            
+            container.innerHTML = '';
+            
+            for (const test of tests) {
+                try {
+                    const start = Date.now();
+                    const response = await fetch(test.url);
+                    const time = Date.now() - start;
+                    
+                    if (response.ok) {
+                        logMessage('networkResults', `✅ ${test.name}: 响应时间 ${time}ms`, 'success');
+                    } else {
+                        logMessage('networkResults', `⚠️ ${test.name}: HTTP ${response.status} (${time}ms)`, 'error');
+                    }
+                } catch (error) {
+                    logMessage('networkResults', `❌ ${test.name}: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // 页面加载时自动检查连接
+        window.addEventListener('load', () => {
+            checkConnection();
+        });
+    </script>
+</body>
+</html> 

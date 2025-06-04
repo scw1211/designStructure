@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>改进的管理界面测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .stats-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .tabs {
+            margin-bottom: 30px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .search-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-input, .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .badge-info {
+            background: #cce7ff;
+            color: #004085;
+        }
+        
+        .expandable-row {
+            cursor: pointer;
+        }
+        
+        .question-detail {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .question-content {
+            margin-bottom: 25px;
+        }
+        
+        .question-content h4 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+        
+        .question-text {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .answers-management {
+            border-top: 2px solid #e9ecef;
+            padding-top: 25px;
+        }
+        
+        .answers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .answers-header h4 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .answers-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .answer-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f3f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .answer-content {
+            flex: 1;
+            margin-right: 15px;
+        }
+        
+        .answer-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 改进的管理界面</h1>
+            <p>在问题中统一管理回答 - 更符合逻辑的设计</p>
+        </div>
+
+        <!-- 系统统计 -->
+        <div class="stats-section">
+            <div class="stats-grid" id="statsGrid">
+                <!-- 统计卡片将在这里动态生成 -->
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 标签页 -->
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('users')">👥 用户管理</button>
+                    <button class="tab-button" onclick="switchTab('questions')">📝 问题与回答管理</button>
+                </div>
+
+                <!-- 用户管理标签页 -->
+                <div id="users-tab" class="tab-content active">
+                    <div class="search-controls">
+                        <input type="text" class="search-input" placeholder="搜索用户..." id="userSearch">
+                        <select class="filter-select" id="roleFilter">
+                            <option value="">全部角色</option>
+                            <option value="ADMIN">管理员</option>
+                            <option value="MODERATOR">版主</option>
+                            <option value="USER">普通用户</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadUsers()">🔄 刷新</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th>声望</th>
+                                    <th>状态</th>
+                                    <th>注册时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="8" class="loading">正在加载用户数据...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 问题与回答管理标签页 -->
+                <div id="questions-tab" class="tab-content">
+                    <div class="search-controls">
+                        <input type="text" class="search-input" placeholder="搜索问题..." id="questionSearch">
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">全部状态</option>
+                            <option value="open">开放</option>
+                            <option value="solved">已解决</option>
+                            <option value="closed">已关闭</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadQuestions()">🔄 刷新</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th width="50">ID</th>
+                                    <th>标题</th>
+                                    <th width="100">作者</th>
+                                    <th width="80">状态</th>
+                                    <th width="80">回答数</th>
+                                    <th width="80">浏览数</th>
+                                    <th width="120">创建时间</th>
+                                    <th width="200">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questionsTableBody">
+                                <tr>
+                                    <td colspan="8" class="loading">正在加载问题数据...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 结果显示 -->
+            <div class="result-panel" id="resultPanel"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let expandedQuestions = new Set();
+        let questionAnswers = {};
+
+        // 切换标签页
+        function switchTab(tabName) {
+            // 更新按钮状态
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // 加载对应数据
+            if (tabName === 'users') {
+                loadUsers();
+            } else if (tabName === 'questions') {
+                loadQuestions();
+            }
+        }
+
+        // 通用API请求函数
+        async function apiRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API请求失败:', error);
+                throw error;
+            }
+        }
+
+        // 加载系统统计
+        async function loadStats() {
+            try {
+                const stats = await apiRequest(`${API_BASE}/admin/stats`);
+                displayStats(stats);
+                updateResult('✅ 系统统计加载成功', 'success');
+            } catch (error) {
+                updateResult(`❌ 加载统计失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示统计数据
+        function displayStats(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const statItems = [
+                { label: '总用户数', value: stats.totalUsers || 0, icon: '👥' },
+                { label: '管理员', value: stats.adminCount || 0, icon: '👑' },
+                { label: '版主', value: stats.moderatorCount || 0, icon: '🛡️' },
+                { label: '普通用户', value: stats.regularUserCount || 0, icon: '👤' },
+                { label: '总问题数', value: stats.totalQuestions || 0, icon: '❓' },
+                { label: '已解决', value: stats.solvedQuestions || 0, icon: '✅' },
+                { label: '已关闭', value: stats.closedQuestions || 0, icon: '🔒' },
+                { label: '总回答数', value: stats.totalAnswers || 0, icon: '💬' }
+            ];
+            
+            statsGrid.innerHTML = statItems.map(item => `
+                <div class="stat-card">
+                    <div class="stat-number">${item.icon} ${item.value}</div>
+                    <div class="stat-label">${item.label}</div>
+                </div>
+            `).join('');
+        }
+
+        // 加载用户列表
+        async function loadUsers() {
+            try {
+                updateResult('正在加载用户列表...', 'info');
+                
+                const response = await apiRequest(`${API_BASE}/admin/users?page=0&size=50`);
+                const users = response.content || response;
+                
+                displayUsers(users);
+                updateResult(`✅ 用户列表加载成功，共 ${users.length} 个用户`, 'success');
+            } catch (error) {
+                updateResult(`❌ 加载用户失败: ${error.message}`, 'error');
+                document.getElementById('usersTableBody').innerHTML = 
+                    '<tr><td colspan="8" style="text-align: center; color: #e74c3c;">加载失败</td></tr>';
+            }
+        }
+
+        // 显示用户列表
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">暂无用户数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><span class="badge ${getRoleBadgeClass(user.role)}">${getRoleLabel(user.role)}</span></td>
+                    <td>${user.reputation || 0}</td>
+                    <td><span class="badge ${user.enabled ? 'badge-success' : 'badge-danger'}">${user.enabled ? '启用' : '禁用'}</span></td>
+                    <td>${formatDate(user.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="toggleUserRole(${user.id}, '${user.role}', '${user.username}')">
+                            更改角色
+                        </button>
+                        <button class="btn ${user.enabled ? 'btn-warning' : 'btn-success'}" onclick="toggleUserStatus(${user.id}, ${user.enabled}, '${user.username}')">
+                            ${user.enabled ? '禁用' : '启用'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 加载问题列表
+        async function loadQuestions() {
+            try {
+                updateResult('正在加载问题列表...', 'info');
+                
+                const response = await apiRequest(`${API_BASE}/admin/questions?page=0&size=50`);
+                const questions = response.content || response;
+                
+                displayQuestions(questions);
+                updateResult(`✅ 问题列表加载成功，共 ${questions.length} 个问题`, 'success');
+            } catch (error) {
+                updateResult(`❌ 加载问题失败: ${error.message}`, 'error');
+                document.getElementById('questionsTableBody').innerHTML = 
+                    '<tr><td colspan="8" style="text-align: center; color: #e74c3c;">加载失败</td></tr>';
+            }
+        }
+
+        // 显示问题列表
+        function displayQuestions(questions) {
+            const tbody = document.getElementById('questionsTableBody');
+            
+            if (questions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">暂无问题数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = questions.map(question => `
+                <tr class="expandable-row" onclick="toggleQuestionDetail(${question.id})">
+                    <td>${question.id}</td>
+                    <td>
+                        <strong>${question.title}</strong>
+                        <div id="question-detail-${question.id}" class="hidden">
+                            <div class="question-detail">
+                                <div class="question-content">
+                                    <h4>问题内容</h4>
+                                    <div class="question-text">${question.content}</div>
+                                </div>
+                                <div class="answers-management">
+                                    <div class="answers-header">
+                                        <h4>回答管理</h4>
+                                        <button class="btn btn-primary" onclick="loadQuestionAnswers(${question.id}, event)">
+                                            📋 加载回答
+                                        </button>
+                                    </div>
+                                    <div id="answers-${question.id}" class="answers-list">
+                                        <div style="text-align: center; padding: 20px; color: #666;">
+                                            点击"加载回答"查看该问题的所有回答
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${question.author?.username || 'N/A'}</td>
+                    <td><span class="badge ${getStatusBadgeClass(question)}">${getStatusLabel(question)}</span></td>
+                    <td>${question.answerCount}</td>
+                    <td>${question.viewCount}</td>
+                    <td>${formatDate(question.createdAt)}</td>
+                    <td onclick="event.stopPropagation()">
+                        <button class="btn ${question.closed ? 'btn-success' : 'btn-warning'}" onclick="toggleQuestionStatus(${question.id}, ${question.closed}, '${question.title}')">
+                            ${question.closed ? '开启' : '关闭'}
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteQuestion(${question.id}, '${question.title}')">
+                            删除
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 切换问题详情展示
+        function toggleQuestionDetail(questionId) {
+            const detailElement = document.getElementById(`question-detail-${questionId}`);
+            const isExpanded = expandedQuestions.has(questionId);
+            
+            if (isExpanded) {
+                detailElement.classList.add('hidden');
+                expandedQuestions.delete(questionId);
+            } else {
+                detailElement.classList.remove('hidden');
+                expandedQuestions.add(questionId);
+            }
+        }
+
+        // 加载问题的回答
+        async function loadQuestionAnswers(questionId, event) {
+            event.stopPropagation();
+            
+            try {
+                updateResult(`正在加载问题 ${questionId} 的回答...`, 'info');
+                
+                const response = await apiRequest(`${API_BASE}/admin/answers?questionId=${questionId}&page=0&size=100`);
+                const answers = response.content || response;
+                
+                displayQuestionAnswers(questionId, answers);
+                updateResult(`✅ 问题 ${questionId} 的回答加载成功，共 ${answers.length} 个回答`, 'success');
+            } catch (error) {
+                updateResult(`❌ 加载回答失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示问题的回答
+        function displayQuestionAnswers(questionId, answers) {
+            const answersContainer = document.getElementById(`answers-${questionId}`);
+            
+            if (answers.length === 0) {
+                answersContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">该问题暂无回答</div>';
+                return;
+            }
+            
+            answersContainer.innerHTML = answers.map(answer => `
+                <div class="answer-item">
+                    <div class="answer-content">
+                        <div>${answer.content.substring(0, 200)}${answer.content.length > 200 ? '...' : ''}</div>
+                        <div class="answer-meta">
+                            👤 ${answer.author?.username || 'N/A'} | 
+                            ${answer.accepted ? '✅ 已采纳' : '⭕ 未采纳'} | 
+                            👍 ${answer.voteCount} | 
+                            🕒 ${formatDate(answer.createdAt)}
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger" onclick="deleteAnswer(${answer.id}, ${questionId}, event)">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 切换问题状态
+        async function toggleQuestionStatus(questionId, currentClosed, title) {
+            const action = currentClosed ? '开启' : '关闭';
+            
+            if (!confirm(`确定要${action}问题 "${title}" 吗？`)) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`${API_BASE}/admin/questions/${questionId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        closed: !currentClosed,
+                        reason: `管理员操作：${action}问题`
+                    })
+                });
+                
+                updateResult(`✅ 问题已${action}`, 'success');
+                loadQuestions(); // 刷新问题列表
+                loadStats();    // 刷新统计
+            } catch (error) {
+                updateResult(`❌ ${action}问题失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 删除问题
+        async function deleteQuestion(questionId, title) {
+            if (!confirm(`确定要删除问题 "${title}" 吗？此操作不可撤销！`)) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`${API_BASE}/admin/questions/${questionId}`, {
+                    method: 'DELETE'
+                });
+                
+                updateResult(`✅ 问题已删除`, 'success');
+                loadQuestions(); // 刷新问题列表
+                loadStats();    // 刷新统计
+            } catch (error) {
+                updateResult(`❌ 删除问题失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 删除回答
+        async function deleteAnswer(answerId, questionId, event) {
+            event.stopPropagation();
+            
+            if (!confirm(`确定要删除这个回答吗？此操作不可撤销！`)) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`${API_BASE}/admin/answers/${answerId}`, {
+                    method: 'DELETE'
+                });
+                
+                updateResult(`✅ 回答已删除`, 'success');
+                loadQuestionAnswers(questionId, event); // 重新加载该问题的回答
+                loadStats(); // 刷新统计
+            } catch (error) {
+                updateResult(`❌ 删除回答失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 工具函数
+        function getRoleBadgeClass(role) {
+            switch (role) {
+                case 'ADMIN': return 'badge-danger';
+                case 'MODERATOR': return 'badge-warning';
+                default: return 'badge-info';
+            }
+        }
+
+        function getRoleLabel(role) {
+            switch (role) {
+                case 'ADMIN': return '管理员';
+                case 'MODERATOR': return '版主';
+                default: return '普通用户';
+            }
+        }
+
+        function getStatusBadgeClass(question) {
+            if (question.solved) return 'badge-success';
+            if (question.closed) return 'badge-danger';
+            return 'badge-info';
+        }
+
+        function getStatusLabel(question) {
+            if (question.solved) return '已解决';
+            if (question.closed) return '已关闭';
+            return '开放';
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function updateResult(message, type = 'info') {
+            const resultPanel = document.getElementById('resultPanel');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let className = '';
+            let icon = '';
+            
+            switch (type) {
+                case 'success':
+                    className = 'success';
+                    icon = '✅';
+                    break;
+                case 'error':
+                    className = 'error';
+                    icon = '❌';
+                    break;
+                default:
+                    icon = 'ℹ️';
+            }
+            
+            resultPanel.innerHTML = `<span class="${className}">[${timestamp}] ${icon} ${message}</span>`;
+            resultPanel.scrollTop = resultPanel.scrollHeight;
+        }
+
+        // 页面加载完成后自动加载数据
+        window.addEventListener('load', () => {
+            loadStats();
+            loadUsers(); // 默认显示用户管理页面
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖼️ 图片预览功能测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn.success { background: #28a745; }
+        .btn.warning { background: #ffc107; color: #212529; }
+        .btn.danger { background: #dc3545; }
+        
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #fd7e14; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        
+        .feature-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-list li::before {
+            content: "✅ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .instruction-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #2d3436;
+        }
+        
+        .instruction-box h4 {
+            margin: 0 0 10px 0;
+            color: #d63031;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ 图片预览功能测试</h1>
+            <p>测试改进后的图片预览功能，支持ESC键退出</p>
+        </div>
+
+        <div class="content">
+            <!-- 功能特性说明 -->
+            <div class="test-section">
+                <h3>🎯 新功能特性</h3>
+                <div class="feature-list">
+                    <ul>
+                        <li>使用Element Plus的原生图片预览组件</li>
+                        <li>支持ESC键快速退出预览</li>
+                        <li>支持鼠标滚轮缩放图片</li>
+                        <li>支持键盘左右箭头切换图片</li>
+                        <li>支持点击空白区域关闭预览</li>
+                        <li>提供更流畅的动画效果</li>
+                        <li>响应式适配各种屏幕尺寸</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 使用说明 -->
+            <div class="test-section">
+                <h3>📋 使用说明</h3>
+                <div class="instruction-box">
+                    <h4>如何测试图片预览功能：</h4>
+                    <ol>
+                        <li>确保后端服务正常运行（http://localhost:8080）</li>
+                        <li>前往问题详情页面（包含图片的问题）</li>
+                        <li>点击任意图片进入预览模式</li>
+                        <li>尝试以下操作：
+                            <ul>
+                                <li><strong>ESC键</strong> - 退出预览</li>
+                                <li><strong>左右箭头键</strong> - 切换图片</li>
+                                <li><strong>鼠标滚轮</strong> - 缩放图片</li>
+                                <li><strong>点击空白区域</strong> - 关闭预览</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- 系统状态检查 -->
+            <div class="test-section">
+                <h3>🔍 系统状态检查</h3>
+                <button class="btn" onclick="checkSystemStatus()">检查后端服务</button>
+                <button class="btn success" onclick="checkQuestionImages()">检查问题图片</button>
+                <button class="btn warning" onclick="openQuestionDetail()">打开问题详情</button>
+                <div class="status-box" id="systemStatus">
+点击"检查后端服务"开始测试...
+                </div>
+            </div>
+
+            <!-- 问题导航 -->
+            <div class="test-section">
+                <h3>🔗 快速导航</h3>
+                <button class="btn" onclick="goToQuestion(1)">问题1</button>
+                <button class="btn" onclick="goToQuestion(2)">问题2</button>
+                <button class="btn" onclick="goToQuestion(3)">问题3</button>
+                <button class="btn success" onclick="goToQuestion(10)">测试问题(ID:10)</button>
+                <div class="status-box" id="navigationStatus">
+选择一个问题查看图片预览功能...
+                </div>
+            </div>
+
+            <!-- 预期效果展示 -->
+            <div class="test-section">
+                <h3>🎭 预期效果</h3>
+                <div class="feature-list">
+                    <ul>
+                        <li>点击图片时立即打开预览，无需加载新页面</li>
+                        <li>预览界面有半透明黑色背景</li>
+                        <li>图片居中显示，自动适配屏幕尺寸</li>
+                        <li>按ESC键能够立即关闭预览</li>
+                        <li>多张图片时显示左右箭头导航</li>
+                        <li>预览时页面背景被锁定，防止滚动</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        // 检查系统状态
+        async function checkSystemStatus() {
+            try {
+                updateStatus('systemStatus', '🔄 正在检查系统状态...', 'info');
+                
+                const response = await fetch(`${API_BASE}/admin/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('systemStatus', `✅ 系统状态正常！
+🏠 服务地址: ${API_BASE}
+📊 问题数量: ${data.totalQuestions}
+📸 可以测试图片预览功能`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('systemStatus', `❌ 系统连接失败: ${error.message}
+请确保后端服务在 http://localhost:8080 运行`, 'error');
+            }
+        }
+
+        // 检查问题图片
+        async function checkQuestionImages() {
+            try {
+                updateStatus('systemStatus', '🔄 正在检查问题图片...', 'info');
+                
+                // 检查几个问题的图片
+                const questionIds = [1, 2, 3, 10];
+                let hasImages = false;
+                let imageCount = 0;
+                
+                for (const id of questionIds) {
+                    try {
+                        const response = await fetch(`${API_BASE}/questions/${id}/images`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.images && data.images.length > 0) {
+                                hasImages = true;
+                                imageCount += data.images.length;
+                            }
+                        }
+                    } catch (error) {
+                        // 忽略单个问题的错误
+                    }
+                }
+                
+                if (hasImages) {
+                    updateStatus('systemStatus', `✅ 发现图片！
+📷 总计: ${imageCount} 张图片
+🎯 可以测试图片预览功能`, 'success');
+                } else {
+                    updateStatus('systemStatus', `⚠️ 未发现图片
+💡 请先上传一些测试图片`, 'warning');
+                }
+            } catch (error) {
+                updateStatus('systemStatus', `❌ 检查图片失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 打开问题详情
+        function openQuestionDetail() {
+            // 在Vue应用中打开
+            const vueUrl = 'http://localhost:5174/question/10';
+            window.open(vueUrl, '_blank');
+            updateStatus('systemStatus', `🔗 已在新窗口打开问题详情页面
+📱 请在Vue应用中测试图片预览功能`, 'info');
+        }
+
+        // 跳转到指定问题
+        function goToQuestion(id) {
+            const vueUrl = `http://localhost:5174/question/${id}`;
+            window.open(vueUrl, '_blank');
+            updateStatus('navigationStatus', `🔗 已打开问题 ${id}
+📱 请测试图片预览功能`, 'info');
+        }
+
+        // 辅助函数
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `status-box ${type}`;
+        }
+
+        // 页面加载时自动检查状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+        });
+    </script>
+</body>
+</html> 

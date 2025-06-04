@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人主页和采纳功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #333;
+            border-bottom: 2px solid #409eff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-button {
+            background: #409eff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #66b1ff;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .user-card {
+            display: inline-block;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+            min-width: 200px;
+        }
+        .answer-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .accepted {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 个人主页和采纳功能测试</h1>
+    
+    <!-- 用户信息测试 -->
+    <div class="test-section">
+        <h2 class="test-title">👤 用户信息测试</h2>
+        <button class="test-button" onclick="testUserInfo()">获取用户信息</button>
+        <button class="test-button" onclick="testUserStats()">获取用户统计</button>
+        <div id="userInfoResult" class="result"></div>
+    </div>
+
+    <!-- 用户回答测试 -->
+    <div class="test-section">
+        <h2 class="test-title">💬 用户回答测试</h2>
+        <button class="test-button" onclick="testUserAnswers()">获取用户回答</button>
+        <div id="userAnswersResult" class="result"></div>
+    </div>
+
+    <!-- 关注功能测试 -->
+    <div class="test-section">
+        <h2 class="test-title">👥 关注功能测试</h2>
+        <button class="test-button" onclick="testFollowers()">获取粉丝列表</button>
+        <button class="test-button" onclick="testFollowing()">获取关注列表</button>
+        <div id="followResult" class="result"></div>
+    </div>
+
+    <!-- 采纳功能测试 -->
+    <div class="test-section">
+        <h2 class="test-title">✅ 采纳功能测试</h2>
+        <button class="test-button" onclick="testQuestionAnswers()">查看问题回答</button>
+        <button class="test-button" onclick="testAcceptAnswer()">测试采纳功能</button>
+        <div id="acceptResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        const TEST_USER_ID = 1;
+        const TEST_QUESTION_ID = 6;
+
+        // 通用API调用函数
+        async function apiCall(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': TEST_USER_ID.toString(),
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        // 测试用户信息
+        async function testUserInfo() {
+            try {
+                const userInfo = await apiCall(`${API_BASE}/users/${TEST_USER_ID}`);
+                showResult('userInfoResult', {
+                    message: '✅ 用户信息获取成功',
+                    data: userInfo
+                });
+            } catch (error) {
+                showResult('userInfoResult', {
+                    message: '❌ 用户信息获取失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 测试用户统计
+        async function testUserStats() {
+            try {
+                const stats = await apiCall(`${API_BASE}/users/${TEST_USER_ID}/stats`);
+                showResult('userInfoResult', {
+                    message: '✅ 用户统计获取成功',
+                    data: stats
+                });
+            } catch (error) {
+                showResult('userInfoResult', {
+                    message: '❌ 用户统计获取失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 测试用户回答
+        async function testUserAnswers() {
+            try {
+                const answers = await apiCall(`${API_BASE}/users/${TEST_USER_ID}/answers`);
+                
+                let summary = {
+                    message: '✅ 用户回答获取成功',
+                    总回答数: answers.totalElements || answers.length,
+                    回答列表: []
+                };
+
+                const answerList = answers.content || answers;
+                answerList.forEach((answer, index) => {
+                    summary.回答列表.push({
+                        序号: index + 1,
+                        回答ID: answer.id,
+                        内容预览: answer.content.substring(0, 50) + '...',
+                        问题标题: answer.question?.title || '未知问题',
+                        采纳状态: answer.accepted ? '✅ 已采纳' : '⏳ 未采纳',
+                        投票数: answer.voteCount || 0,
+                        创建时间: answer.createdAt
+                    });
+                });
+
+                showResult('userAnswersResult', summary);
+            } catch (error) {
+                showResult('userAnswersResult', {
+                    message: '❌ 用户回答获取失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 测试粉丝列表
+        async function testFollowers() {
+            try {
+                const followers = await apiCall(`${API_BASE}/users/${TEST_USER_ID}/followers`);
+                showResult('followResult', {
+                    message: '✅ 粉丝列表获取成功',
+                    粉丝数量: followers.totalElements,
+                    粉丝列表: followers.content.map(user => ({
+                        用户名: user.username,
+                        邮箱: user.email,
+                        声望: user.reputation
+                    }))
+                });
+            } catch (error) {
+                showResult('followResult', {
+                    message: '❌ 粉丝列表获取失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 测试关注列表
+        async function testFollowing() {
+            try {
+                const following = await apiCall(`${API_BASE}/users/${TEST_USER_ID}/following`);
+                showResult('followResult', {
+                    message: '✅ 关注列表获取成功',
+                    关注数量: following.totalElements,
+                    关注列表: following.content.map(user => ({
+                        用户名: user.username,
+                        邮箱: user.email,
+                        声望: user.reputation
+                    }))
+                });
+            } catch (error) {
+                showResult('followResult', {
+                    message: '❌ 关注列表获取失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 测试问题回答
+        async function testQuestionAnswers() {
+            try {
+                const answers = await apiCall(`${API_BASE}/questions/${TEST_QUESTION_ID}/answers`);
+                
+                let summary = {
+                    message: '✅ 问题回答获取成功',
+                    问题ID: TEST_QUESTION_ID,
+                    回答数量: answers.totalElements,
+                    回答详情: []
+                };
+
+                answers.content.forEach((answer, index) => {
+                    summary.回答详情.push({
+                        序号: index + 1,
+                        回答ID: answer.id,
+                        内容: answer.content,
+                        作者: answer.author.username,
+                        采纳状态: answer.accepted ? '✅ 已采纳' : '⏳ 未采纳',
+                        投票数: answer.voteCount,
+                        问题标题: answer.question?.title || '未知'
+                    });
+                });
+
+                showResult('acceptResult', summary);
+            } catch (error) {
+                showResult('acceptResult', {
+                    message: '❌ 问题回答获取失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 测试采纳功能
+        async function testAcceptAnswer() {
+            try {
+                // 先获取问题的回答
+                const answers = await apiCall(`${API_BASE}/questions/${TEST_QUESTION_ID}/answers`);
+                
+                if (answers.content.length === 0) {
+                    showResult('acceptResult', {
+                        message: '❌ 没有可采纳的回答',
+                        问题ID: TEST_QUESTION_ID
+                    }, true);
+                    return;
+                }
+
+                // 找一个未采纳的回答进行采纳
+                const unacceptedAnswer = answers.content.find(answer => !answer.accepted);
+                
+                if (!unacceptedAnswer) {
+                    showResult('acceptResult', {
+                        message: '⚠️ 所有回答都已被采纳',
+                        当前采纳状态: answers.content.map(a => ({
+                            回答ID: a.id,
+                            内容: a.content.substring(0, 30) + '...',
+                            采纳状态: a.accepted ? '✅ 已采纳' : '⏳ 未采纳'
+                        }))
+                    });
+                    return;
+                }
+
+                // 执行采纳操作
+                const acceptResult = await apiCall(`${API_BASE}/questions/${TEST_QUESTION_ID}/accept`, {
+                    method: 'POST',
+                    body: JSON.stringify({ answerId: unacceptedAnswer.id })
+                });
+
+                // 再次获取回答列表验证采纳状态
+                const updatedAnswers = await apiCall(`${API_BASE}/questions/${TEST_QUESTION_ID}/answers`);
+
+                showResult('acceptResult', {
+                    message: '✅ 采纳功能测试成功',
+                    采纳操作结果: acceptResult,
+                    被采纳的回答ID: unacceptedAnswer.id,
+                    更新后的回答状态: updatedAnswers.content.map(a => ({
+                        回答ID: a.id,
+                        内容: a.content.substring(0, 30) + '...',
+                        采纳状态: a.accepted ? '✅ 已采纳' : '⏳ 未采纳'
+                    }))
+                });
+            } catch (error) {
+                showResult('acceptResult', {
+                    message: '❌ 采纳功能测试失败',
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // 页面加载时自动运行基础测试
+        window.onload = function() {
+            console.log('🚀 个人主页和采纳功能测试页面已加载');
+            console.log('📝 测试用户ID:', TEST_USER_ID);
+            console.log('📝 测试问题ID:', TEST_QUESTION_ID);
+        };
+    </script>
+</body>
+</html> 

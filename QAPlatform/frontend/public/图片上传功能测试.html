@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖼️ 图片上传功能测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #f0fff0;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn.success { background: #28a745; }
+        .btn.warning { background: #ffc107; color: #212529; }
+        .btn.danger { background: #dc3545; }
+        
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .image-item {
+            width: 150px;
+            height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: #f8f9fa;
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .image-info {
+            padding: 5px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .api-test {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #fd7e14; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ 图片上传功能测试</h1>
+            <p>完整的问题图片上传功能验证和调试工具</p>
+        </div>
+
+        <div class="content">
+            <!-- 服务状态检查 -->
+            <div class="test-section">
+                <h3>🔍 后端服务状态检查</h3>
+                <button class="btn" onclick="checkBackendStatus()">检查后端状态</button>
+                <button class="btn success" onclick="testImageAPI()">测试图片API</button>
+                <button class="btn warning" onclick="createTestQuestion()">创建测试问题</button>
+                <div class="status-box" id="serviceStatus">
+点击"检查后端状态"开始测试...
+                </div>
+            </div>
+
+            <!-- 图片上传测试 -->
+            <div class="test-section">
+                <h3>📤 图片上传测试</h3>
+                
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <p style="font-size: 18px; margin-bottom: 10px;">📁 点击选择图片或拖拽图片到此处</p>
+                    <p style="color: #666; font-size: 14px;">支持 JPG、PNG、GIF、WebP 格式，最大 5MB，最多 5 张</p>
+                </div>
+                
+                <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <div style="text-align: center; margin: 15px 0;">
+                    <button class="btn success" onclick="uploadImages()" id="uploadBtn" disabled>上传图片</button>
+                    <button class="btn danger" onclick="clearImages()">清空选择</button>
+                    <button class="btn warning" onclick="testSingleUpload()">测试单张上传</button>
+                </div>
+                
+                <div class="status-box" id="uploadStatus">
+选择图片文件后点击"上传图片"开始测试...
+                </div>
+                
+                <div class="image-preview" id="imagePreview"></div>
+            </div>
+
+            <!-- API接口测试 -->
+            <div class="test-section">
+                <h3>🔗 API接口测试</h3>
+                
+                <div class="api-test">
+                    <h4>可用的图片API接口：</h4>
+                    <p><code>POST /api/questions/{questionId}/images</code> - 上传单张图片</p>
+                    <p><code>POST /api/questions/{questionId}/images/batch</code> - 批量上传图片</p>
+                    <p><code>GET /api/questions/{questionId}/images</code> - 获取问题所有图片</p>
+                    <p><code>GET /api/questions/images/{imageId}/file</code> - 获取图片文件</p>
+                    <p><code>DELETE /api/questions/images/{imageId}</code> - 删除图片</p>
+                </div>
+                
+                <button class="btn" onclick="testGetImages()">测试获取图片列表</button>
+                <button class="btn warning" onclick="testImagePermissions()">测试权限控制</button>
+                <button class="btn danger" onclick="testImageDelete()">测试图片删除</button>
+                
+                <div class="status-box" id="apiStatus">
+点击上方按钮测试相应的API功能...
+                </div>
+            </div>
+
+            <!-- 问题诊断 -->
+            <div class="test-section">
+                <h3>🛠️ 问题诊断工具</h3>
+                
+                <button class="btn info" onclick="diagnoseUploadIssues()">诊断上传问题</button>
+                <button class="btn warning" onclick="checkFilePermissions()">检查文件权限</button>
+                <button class="btn" onclick="validateConfiguration()">验证配置</button>
+                
+                <div class="status-box" id="diagnosisStatus">
+使用诊断工具分析可能的问题...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let selectedFiles = [];
+        let testQuestionId = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFileHandlers();
+            checkBackendStatus();
+        });
+
+        // 设置文件处理器
+        function setupFileHandlers() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // 拖拽处理
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+                handleFiles(files);
+            });
+        }
+
+        // 处理文件选择
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            handleFiles(files);
+        }
+
+        // 处理文件
+        function handleFiles(files) {
+            if (files.length > 5) {
+                updateStatus('uploadStatus', '❌ 最多只能选择5张图片', 'error');
+                return;
+            }
+
+            selectedFiles = files.slice(0, 5);
+            displayImagePreview();
+            document.getElementById('uploadBtn').disabled = selectedFiles.length === 0;
+            
+            updateStatus('uploadStatus', `✅ 已选择 ${selectedFiles.length} 张图片`, 'success');
+        }
+
+        // 显示图片预览
+        function displayImagePreview() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageItem = document.createElement('div');
+                    imageItem.className = 'image-item';
+                    imageItem.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}">
+                        <div class="image-info">${file.name}<br>${(file.size/1024/1024).toFixed(2)}MB</div>
+                        <button class="delete-btn" onclick="removeImage(${index})">×</button>
+                    `;
+                    preview.appendChild(imageItem);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 移除图片
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            displayImagePreview();
+            document.getElementById('uploadBtn').disabled = selectedFiles.length === 0;
+        }
+
+        // 清空图片
+        function clearImages() {
+            selectedFiles = [];
+            document.getElementById('imagePreview').innerHTML = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadBtn').disabled = true;
+            updateStatus('uploadStatus', '已清空所有选择的图片', 'info');
+        }
+
+        // 检查后端状态
+        async function checkBackendStatus() {
+            try {
+                updateStatus('serviceStatus', '🔄 正在检查后端服务状态...', 'info');
+                
+                const response = await fetch(`${API_BASE}/admin/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('serviceStatus', `✅ 后端服务正常运行！
+🏠 服务地址: ${API_BASE}
+📊 系统统计: ${data.totalQuestions} 个问题, ${data.totalAnswers} 个回答
+👥 用户数量: ${data.totalUsers} 个用户
+🛡️ 管理员: ${data.adminCount} 个`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('serviceStatus', `❌ 后端服务连接失败: ${error.message}
+请确保后端服务在 http://localhost:8080 运行`, 'error');
+            }
+        }
+
+        // 测试图片API
+        async function testImageAPI() {
+            try {
+                updateStatus('serviceStatus', '🔄 测试图片API接口...', 'info');
+                
+                // 测试获取问题图片
+                const response = await fetch(`${API_BASE}/questions/1/images`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('serviceStatus', `✅ 图片API接口正常！
+📁 问题1的图片数量: ${data.images ? data.images.length : 0}
+🔗 API响应正常`, 'success');
+                } else {
+                    updateStatus('serviceStatus', `⚠️ 图片API响应异常: HTTP ${response.status}
+这可能是正常的（如果问题1不存在）`, 'warning');
+                }
+            } catch (error) {
+                updateStatus('serviceStatus', `❌ 图片API测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 创建测试问题
+        async function createTestQuestion() {
+            try {
+                updateStatus('serviceStatus', '🔄 正在创建测试问题...', 'info');
+                
+                const questionData = {
+                    title: '图片上传测试问题',
+                    content: '这是一个用于测试图片上传功能的问题。',
+                    tagNames: ['测试', '图片上传'],
+                    authorId: 1
+                };
+                
+                const response = await fetch(`${API_BASE}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(questionData)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    testQuestionId = data.question?.id || data.id;
+                    updateStatus('serviceStatus', `✅ 测试问题创建成功！
+🆔 问题ID: ${testQuestionId}
+📝 标题: ${questionData.title}
+现在可以测试图片上传功能了！`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('serviceStatus', `❌ 创建测试问题失败: ${error.message}
+使用默认问题ID进行测试...`, 'warning');
+                testQuestionId = 1; // 使用默认ID
+            }
+        }
+
+        // 上传图片
+        async function uploadImages() {
+            if (selectedFiles.length === 0) {
+                updateStatus('uploadStatus', '❌ 请先选择图片文件', 'error');
+                return;
+            }
+
+            if (!testQuestionId) {
+                updateStatus('uploadStatus', '❌ 请先创建测试问题', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('uploadStatus', '🔄 正在上传图片...', 'info');
+                showProgress(0);
+
+                const uploadPromises = selectedFiles.map(async (file, index) => {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch(`${API_BASE}/questions/${testQuestionId}/images`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const progress = ((index + 1) / selectedFiles.length) * 100;
+                    showProgress(progress);
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `上传失败: HTTP ${response.status}`);
+                    }
+
+                    return await response.json();
+                });
+
+                const results = await Promise.all(uploadPromises);
+                
+                updateStatus('uploadStatus', `✅ 所有图片上传成功！
+📤 成功上传: ${results.length} 张图片
+🆔 问题ID: ${testQuestionId}
+📁 图片信息: ${results.map(r => r.image?.fileName || '未知').join(', ')}`, 'success');
+                
+                hideProgress();
+                clearImages();
+                
+            } catch (error) {
+                hideProgress();
+                updateStatus('uploadStatus', `❌ 图片上传失败: ${error.message}
+🔍 可能的原因:
+• 文件格式不支持（只支持JPG、PNG、GIF、WebP）
+• 文件太大（最大5MB）
+• 网络连接问题
+• 后端服务异常`, 'error');
+            }
+        }
+
+        // 测试单张上传
+        async function testSingleUpload() {
+            try {
+                // 创建一个1x1像素的PNG图片
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(0, 0, 1, 1);
+                
+                canvas.toBlob(async (blob) => {
+                    if (!testQuestionId) {
+                        await createTestQuestion();
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('file', blob, 'test.png');
+                    
+                    updateStatus('uploadStatus', '🔄 测试单张图片上传...', 'info');
+                    
+                    const response = await fetch(`${API_BASE}/questions/${testQuestionId}/images`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateStatus('uploadStatus', `✅ 单张图片上传测试成功！
+📄 文件名: ${data.image?.fileName || '测试图片'}
+📏 大小: ${(data.image?.fileSize || 0)} 字节
+🆔 图片ID: ${data.image?.id || '未知'}`, 'success');
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `HTTP ${response.status}`);
+                    }
+                }, 'image/png');
+                
+            } catch (error) {
+                updateStatus('uploadStatus', `❌ 单张图片上传测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试获取图片
+        async function testGetImages() {
+            try {
+                updateStatus('apiStatus', '🔄 测试获取图片列表...', 'info');
+                
+                const questionId = testQuestionId || 1;
+                const response = await fetch(`${API_BASE}/questions/${questionId}/images`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const images = data.images || [];
+                    updateStatus('apiStatus', `✅ 获取图片列表成功！
+🆔 问题ID: ${questionId}
+📁 图片数量: ${images.length}
+📄 图片列表: ${images.map(img => `${img.fileName} (${(img.fileSize/1024).toFixed(1)}KB)`).join(', ')}`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('apiStatus', `❌ 获取图片列表失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 诊断上传问题
+        async function diagnoseUploadIssues() {
+            updateStatus('diagnosisStatus', '🔍 开始诊断上传问题...', 'info');
+            
+            let diagnosis = [];
+            
+            // 检查后端连接
+            try {
+                const response = await fetch(`${API_BASE}/admin/stats`);
+                if (response.ok) {
+                    diagnosis.push('✅ 后端服务连接正常');
+                } else {
+                    diagnosis.push('❌ 后端服务响应异常');
+                }
+            } catch (error) {
+                diagnosis.push('❌ 无法连接到后端服务');
+            }
+            
+            // 检查浏览器支持
+            if (window.FormData) {
+                diagnosis.push('✅ 浏览器支持FormData');
+            } else {
+                diagnosis.push('❌ 浏览器不支持FormData');
+            }
+            
+            if (window.FileReader) {
+                diagnosis.push('✅ 浏览器支持FileReader');
+            } else {
+                diagnosis.push('❌ 浏览器不支持FileReader');
+            }
+            
+            // 检查测试问题
+            if (testQuestionId) {
+                diagnosis.push(`✅ 测试问题已创建 (ID: ${testQuestionId})`);
+            } else {
+                diagnosis.push('⚠️ 未创建测试问题');
+            }
+            
+            updateStatus('diagnosisStatus', `🔍 诊断结果：\n${diagnosis.join('\n')}`, 'info');
+        }
+
+        // 辅助函数
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `status-box ${type}`;
+        }
+
+        function showProgress(percent) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.style.display = 'block';
+            progressFill.style.width = percent + '%';
+        }
+
+        function hideProgress() {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.display = 'none';
+        }
+
+        // 其他测试函数
+        function testImagePermissions() {
+            updateStatus('apiStatus', '🔐 权限控制测试需要具体的图片ID和用户ID', 'warning');
+        }
+
+        function testImageDelete() {
+            updateStatus('apiStatus', '🗑️ 图片删除测试需要先上传图片获取图片ID', 'warning');
+        }
+
+        function checkFilePermissions() {
+            updateStatus('diagnosisStatus', '📁 文件权限检查需要服务器端配置信息', 'warning');
+        }
+
+        function validateConfiguration() {
+            updateStatus('diagnosisStatus', `⚙️ 配置验证：
+• API基础URL: ${API_BASE}
+• 支持的文件类型: JPG, PNG, GIF, WebP
+• 最大文件大小: 5MB
+• 最大文件数量: 5张`, 'info');
+        }
+    </script>
+</body>
+</html> 

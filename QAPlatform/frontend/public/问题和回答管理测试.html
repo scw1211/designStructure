@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问题和回答管理功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #666; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 12px; opacity: 0.9; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th { background-color: #f2f2f2; }
+        .table tr:nth-child(even) { background-color: #f9f9f9; }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .status-solved { background-color: #d4edda; color: #155724; }
+        .status-closed { background-color: #f8d7da; color: #721c24; }
+        .status-open { background-color: #cce7ff; color: #004085; }
+        .status-accepted { background-color: #d4edda; color: #155724; }
+        .status-unaccepted { background-color: #fff3cd; color: #856404; }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .flex { display: flex; gap: 10px; align-items: center; }
+        .loading { opacity: 0.6; pointer-events: none; }
+        .error { color: #dc3545; font-weight: bold; }
+        .success { color: #28a745; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🛠️ 问题和回答管理功能测试</h1>
+    <p style="text-align: center; color: #666;">
+        测试新增的问题管理和回答管理功能，包括系统统计、问题管理、回答管理等
+    </p>
+
+    <!-- 系统统计测试 -->
+    <div class="test-section">
+        <h2>📊 系统统计功能测试</h2>
+        <button class="btn btn-primary" onclick="loadSystemStats()">🔄 刷新系统统计</button>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="result" id="statsResult"></div>
+    </div>
+
+    <!-- 问题管理测试 -->
+    <div class="test-section">
+        <h2>📝 问题管理功能测试</h2>
+        <div class="flex">
+            <button class="btn btn-primary" onclick="loadQuestions()">📋 获取问题列表</button>
+            <input type="number" id="questionId" placeholder="问题ID" min="1">
+            <button class="btn btn-warning" onclick="toggleQuestionStatus()">🔄 切换问题状态</button>
+            <button class="btn btn-danger" onclick="deleteQuestionById()">🗑️ 删除问题</button>
+        </div>
+        <div id="questionsTable"></div>
+        <div class="result" id="questionsResult"></div>
+    </div>
+
+    <!-- 回答管理测试 -->
+    <div class="test-section">
+        <h2>💬 回答管理功能测试</h2>
+        <div class="flex">
+            <button class="btn btn-primary" onclick="loadAnswers()">📋 获取回答列表</button>
+            <input type="number" id="answerId" placeholder="回答ID" min="1">
+            <button class="btn btn-danger" onclick="deleteAnswerById()">🗑️ 删除回答</button>
+            <input type="number" id="filterQuestionId" placeholder="按问题ID筛选">
+            <button class="btn btn-success" onclick="loadAnswersByQuestion()">🔍 按问题筛选</button>
+        </div>
+        <div id="answersTable"></div>
+        <div class="result" id="answersResult"></div>
+    </div>
+
+    <!-- 综合测试 -->
+    <div class="test-section">
+        <h2>🎯 综合功能测试</h2>
+        <button class="btn btn-success" onclick="runComprehensiveTest()">🚀 运行综合测试</button>
+        <div class="result" id="comprehensiveResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        // 通用请求函数
+        async function apiRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API请求失败:', error);
+                throw error;
+            }
+        }
+
+        // 系统统计功能
+        async function loadSystemStats() {
+            const resultDiv = document.getElementById('statsResult');
+            const statsGrid = document.getElementById('statsGrid');
+            
+            try {
+                resultDiv.textContent = '正在加载系统统计...';
+                
+                const stats = await apiRequest(`${API_BASE}/admin/stats`);
+                
+                // 显示统计卡片
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalUsers || 0}</div>
+                        <div class="stat-label">总用户数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalQuestions || 0}</div>
+                        <div class="stat-label">总问题数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalAnswers || 0}</div>
+                        <div class="stat-label">总回答数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.solvedQuestions || 0}</div>
+                        <div class="stat-label">已解决问题</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.closedQuestions || 0}</div>
+                        <div class="stat-label">已关闭问题</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.acceptedAnswers || 0}</div>
+                        <div class="stat-label">已采纳回答</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.adminCount || 0}</div>
+                        <div class="stat-label">管理员数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.moderatorCount || 0}</div>
+                        <div class="stat-label">版主数</div>
+                    </div>
+                `;
+                
+                resultDiv.innerHTML = `<span class="success">✅ 系统统计加载成功！</span>\n${JSON.stringify(stats, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 加载失败: ${error.message}</span>`;
+                statsGrid.innerHTML = '';
+            }
+        }
+
+        // 问题管理功能
+        async function loadQuestions() {
+            const resultDiv = document.getElementById('questionsResult');
+            const tableDiv = document.getElementById('questionsTable');
+            
+            try {
+                resultDiv.textContent = '正在加载问题列表...';
+                
+                const response = await apiRequest(`${API_BASE}/admin/questions?page=0&size=10`);
+                const questions = response.content || response;
+                
+                // 生成问题表格
+                tableDiv.innerHTML = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>标题</th>
+                                <th>作者</th>
+                                <th>状态</th>
+                                <th>回答数</th>
+                                <th>浏览数</th>
+                                <th>创建时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${questions.map(q => `
+                                <tr>
+                                    <td>${q.id}</td>
+                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${q.title}</td>
+                                    <td>${q.author?.username || 'N/A'}</td>
+                                    <td>
+                                        ${q.solved ? '<span class="status-badge status-solved">已解决</span>' : ''}
+                                        ${q.closed ? '<span class="status-badge status-closed">已关闭</span>' : 
+                                          (!q.solved ? '<span class="status-badge status-open">开放</span>' : '')}
+                                    </td>
+                                    <td>${q.answerCount}</td>
+                                    <td>${q.viewCount}</td>
+                                    <td>${new Date(q.createdAt).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                resultDiv.innerHTML = `<span class="success">✅ 问题列表加载成功！共 ${questions.length} 个问题</span>\n${JSON.stringify(response, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 加载失败: ${error.message}</span>`;
+                tableDiv.innerHTML = '';
+            }
+        }
+
+        async function toggleQuestionStatus() {
+            const questionId = document.getElementById('questionId').value;
+            const resultDiv = document.getElementById('questionsResult');
+            
+            if (!questionId) {
+                resultDiv.innerHTML = '<span class="error">❌ 请输入问题ID</span>';
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = '正在切换问题状态...';
+                
+                // 先获取当前状态
+                const question = await apiRequest(`${API_BASE}/questions/${questionId}`);
+                const newStatus = !question.closed;
+                
+                const result = await apiRequest(`${API_BASE}/admin/questions/${questionId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        closed: newStatus,
+                        reason: `管理员测试操作：${newStatus ? '关闭' : '开启'}问题`
+                    })
+                });
+                
+                resultDiv.innerHTML = `<span class="success">✅ ${result.message}</span>\n${JSON.stringify(result, null, 2)}`;
+                loadQuestions(); // 刷新问题列表
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 操作失败: ${error.message}</span>`;
+            }
+        }
+
+        async function deleteQuestionById() {
+            const questionId = document.getElementById('questionId').value;
+            const resultDiv = document.getElementById('questionsResult');
+            
+            if (!questionId) {
+                resultDiv.innerHTML = '<span class="error">❌ 请输入问题ID</span>';
+                return;
+            }
+            
+            if (!confirm(`确定要删除问题 ID ${questionId} 吗？此操作不可撤销！`)) {
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = '正在删除问题...';
+                
+                const result = await apiRequest(`${API_BASE}/admin/questions/${questionId}`, {
+                    method: 'DELETE'
+                });
+                
+                resultDiv.innerHTML = `<span class="success">✅ ${result.message}</span>\n${JSON.stringify(result, null, 2)}`;
+                loadQuestions(); // 刷新问题列表
+                loadSystemStats(); // 刷新统计
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 删除失败: ${error.message}</span>`;
+            }
+        }
+
+        // 回答管理功能
+        async function loadAnswers() {
+            const resultDiv = document.getElementById('answersResult');
+            const tableDiv = document.getElementById('answersTable');
+            
+            try {
+                resultDiv.textContent = '正在加载回答列表...';
+                
+                const response = await apiRequest(`${API_BASE}/admin/answers?page=0&size=10`);
+                const answers = response.content || response;
+                
+                // 生成回答表格
+                tableDiv.innerHTML = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>内容摘要</th>
+                                <th>作者</th>
+                                <th>所属问题</th>
+                                <th>状态</th>
+                                <th>点赞数</th>
+                                <th>创建时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${answers.map(a => `
+                                <tr>
+                                    <td>${a.id}</td>
+                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                                        ${a.content.substring(0, 50)}${a.content.length > 50 ? '...' : ''}
+                                    </td>
+                                    <td>${a.author?.username || 'N/A'}</td>
+                                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">
+                                        <a href="/questions/${a.question?.id}" target="_blank">
+                                            ${a.question?.title?.substring(0, 30) || 'N/A'}${a.question?.title?.length > 30 ? '...' : ''}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge ${a.accepted ? 'status-accepted' : 'status-unaccepted'}">
+                                            ${a.accepted ? '已采纳' : '未采纳'}
+                                        </span>
+                                    </td>
+                                    <td>${a.voteCount}</td>
+                                    <td>${new Date(a.createdAt).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                resultDiv.innerHTML = `<span class="success">✅ 回答列表加载成功！共 ${answers.length} 个回答</span>\n${JSON.stringify(response, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 加载失败: ${error.message}</span>`;
+                tableDiv.innerHTML = '';
+            }
+        }
+
+        async function loadAnswersByQuestion() {
+            const questionId = document.getElementById('filterQuestionId').value;
+            const resultDiv = document.getElementById('answersResult');
+            
+            if (!questionId) {
+                resultDiv.innerHTML = '<span class="error">❌ 请输入问题ID</span>';
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = `正在加载问题 ${questionId} 的回答...`;
+                
+                const response = await apiRequest(`${API_BASE}/admin/answers?page=0&size=10&questionId=${questionId}`);
+                const answers = response.content || response;
+                
+                resultDiv.innerHTML = `<span class="success">✅ 问题 ${questionId} 的回答加载成功！共 ${answers.length} 个回答</span>\n${JSON.stringify(response, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 加载失败: ${error.message}</span>`;
+            }
+        }
+
+        async function deleteAnswerById() {
+            const answerId = document.getElementById('answerId').value;
+            const resultDiv = document.getElementById('answersResult');
+            
+            if (!answerId) {
+                resultDiv.innerHTML = '<span class="error">❌ 请输入回答ID</span>';
+                return;
+            }
+            
+            if (!confirm(`确定要删除回答 ID ${answerId} 吗？此操作不可撤销！`)) {
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = '正在删除回答...';
+                
+                const result = await apiRequest(`${API_BASE}/admin/answers/${answerId}`, {
+                    method: 'DELETE'
+                });
+                
+                resultDiv.innerHTML = `<span class="success">✅ ${result.message}</span>\n${JSON.stringify(result, null, 2)}`;
+                loadAnswers(); // 刷新回答列表
+                loadSystemStats(); // 刷新统计
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 删除失败: ${error.message}</span>`;
+            }
+        }
+
+        // 综合测试
+        async function runComprehensiveTest() {
+            const resultDiv = document.getElementById('comprehensiveResult');
+            resultDiv.innerHTML = '🚀 开始运行综合测试...\n';
+            
+            const tests = [
+                { name: '系统统计测试', func: loadSystemStats },
+                { name: '问题列表测试', func: loadQuestions },
+                { name: '回答列表测试', func: loadAnswers }
+            ];
+            
+            let passedTests = 0;
+            
+            for (const test of tests) {
+                try {
+                    resultDiv.innerHTML += `\n🔄 正在运行: ${test.name}...`;
+                    await test.func();
+                    resultDiv.innerHTML += ` ✅ 通过`;
+                    passedTests++;
+                } catch (error) {
+                    resultDiv.innerHTML += ` ❌ 失败: ${error.message}`;
+                }
+                
+                // 添加延迟避免请求过快
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            resultDiv.innerHTML += `\n\n🎯 综合测试完成！通过 ${passedTests}/${tests.length} 个测试`;
+            
+            if (passedTests === tests.length) {
+                resultDiv.innerHTML += '\n🎉 所有问题和回答管理功能正常工作！';
+            } else {
+                resultDiv.innerHTML += '\n⚠️ 部分功能存在问题，请检查后端服务状态。';
+            }
+        }
+
+        // 页面加载完成后自动加载系统统计
+        window.addEventListener('load', () => {
+            loadSystemStats();
+        });
+    </script>
+</body>
+</html> 

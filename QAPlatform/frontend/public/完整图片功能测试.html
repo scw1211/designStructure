@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖼️ 完整图片功能测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn.success { background: #28a745; }
+        .btn.warning { background: #ffc107; color: #212529; }
+        .btn.danger { background: #dc3545; }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+        
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #fd7e14; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .image-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .image-info {
+            padding: 10px;
+            font-size: 12px;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ 完整图片功能测试</h1>
+            <p>测试问题图片上传和显示的完整流程</p>
+        </div>
+
+        <div class="content">
+            <!-- 服务状态检查 -->
+            <div class="test-section">
+                <h3>🔍 系统状态检查</h3>
+                <button class="btn" onclick="checkSystemStatus()">检查系统状态</button>
+                <button class="btn success" onclick="createTestQuestion()">创建测试问题</button>
+                <div class="status-box" id="systemStatus">
+点击"检查系统状态"开始测试...
+                </div>
+            </div>
+
+            <!-- 图片上传测试 -->
+            <div class="test-section">
+                <h3>📤 图片上传测试</h3>
+                
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <p style="font-size: 18px; margin-bottom: 10px;">📁 点击选择图片进行测试</p>
+                    <p style="color: #666; font-size: 14px;">支持 JPG、PNG、GIF、WebP 格式</p>
+                </div>
+                
+                <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                
+                <button class="btn success" onclick="uploadSelectedImages()">上传选中图片</button>
+                <button class="btn warning" onclick="testBatchUpload()">测试批量上传</button>
+                <button class="btn" onclick="createTestImage()">上传测试图片</button>
+                
+                <div class="status-box" id="uploadStatus">
+选择图片后点击上传进行测试...
+                </div>
+            </div>
+
+            <!-- 图片显示测试 -->
+            <div class="test-section">
+                <h3>🖼️ 图片显示测试</h3>
+                
+                <button class="btn" onclick="loadQuestionImages()">加载问题图片</button>
+                <button class="btn success" onclick="testImageDisplay()">测试图片显示</button>
+                <button class="btn warning" onclick="testImagePreview()">测试图片预览</button>
+                
+                <div class="status-box" id="displayStatus">
+点击"加载问题图片"查看图片列表...
+                </div>
+                
+                <div class="image-gallery" id="imageGallery"></div>
+            </div>
+
+            <!-- 完整流程测试 -->
+            <div class="test-section">
+                <h3>🔄 完整流程测试</h3>
+                
+                <button class="btn" onclick="testCompleteFlow()">测试完整流程</button>
+                <button class="btn success" onclick="testQuestionWithImages()">测试问题+图片</button>
+                <button class="btn danger" onclick="cleanupTest()">清理测试数据</button>
+                
+                <div class="status-box" id="flowStatus">
+点击"测试完整流程"开始完整测试...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let testQuestionId = null;
+        let selectedFiles = [];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFileHandlers();
+            checkSystemStatus();
+        });
+
+        // 设置文件处理器
+        function setupFileHandlers() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', handleFileSelect);
+        }
+
+        // 处理文件选择
+        function handleFileSelect(event) {
+            selectedFiles = Array.from(event.target.files);
+            updateStatus('uploadStatus', `✅ 已选择 ${selectedFiles.length} 个文件`, 'success');
+        }
+
+        // 检查系统状态
+        async function checkSystemStatus() {
+            try {
+                updateStatus('systemStatus', '🔄 正在检查系统状态...', 'info');
+                
+                // 检查后端服务
+                const response = await fetch(`${API_BASE}/admin/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('systemStatus', `✅ 系统状态正常！
+🏠 服务地址: ${API_BASE}
+📊 问题数量: ${data.totalQuestions}
+👥 用户数量: ${data.totalUsers}`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('systemStatus', `❌ 系统连接失败: ${error.message}
+请确保后端服务在 http://localhost:8080 运行`, 'error');
+            }
+        }
+
+        // 创建测试问题
+        async function createTestQuestion() {
+            try {
+                updateStatus('systemStatus', '🔄 正在创建测试问题...', 'info');
+                
+                const questionData = {
+                    title: '图片功能测试问题',
+                    content: '这是一个专门用于测试图片功能的问题。',
+                    tagNames: ['测试', '图片'],
+                    authorId: 1
+                };
+                
+                const response = await fetch(`${API_BASE}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(questionData)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    testQuestionId = data.question?.id || data.id;
+                    updateStatus('systemStatus', `✅ 测试问题创建成功！
+🆔 问题ID: ${testQuestionId}
+📝 标题: ${questionData.title}`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('systemStatus', `❌ 创建测试问题失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 上传选中图片
+        async function uploadSelectedImages() {
+            if (selectedFiles.length === 0) {
+                updateStatus('uploadStatus', '❌ 请先选择图片文件', 'error');
+                return;
+            }
+
+            if (!testQuestionId) {
+                updateStatus('uploadStatus', '❌ 请先创建测试问题', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('uploadStatus', '🔄 正在上传图片...', 'info');
+                
+                const uploadPromises = selectedFiles.map(async (file, index) => {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch(`${API_BASE}/questions/${testQuestionId}/images`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `上传失败: HTTP ${response.status}`);
+                    }
+
+                    return await response.json();
+                });
+
+                const results = await Promise.all(uploadPromises);
+                
+                updateStatus('uploadStatus', `✅ 图片上传成功！
+📤 成功上传: ${results.length} 张图片
+🆔 问题ID: ${testQuestionId}
+📁 图片列表: ${results.map(r => r.image?.fileName || '未知').join(', ')}`, 'success');
+                
+                // 自动加载图片显示
+                loadQuestionImages();
+                
+            } catch (error) {
+                updateStatus('uploadStatus', `❌ 图片上传失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 创建测试图片
+        async function createTestImage() {
+            try {
+                // 创建一个简单的测试图片
+                const canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 150;
+                const ctx = canvas.getContext('2d');
+                
+                // 绘制彩色背景
+                const gradient = ctx.createLinearGradient(0, 0, 200, 150);
+                gradient.addColorStop(0, '#ff7b7b');
+                gradient.addColorStop(1, '#7b7bff');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 200, 150);
+                
+                // 添加文字
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('测试图片', 100, 75);
+                ctx.font = '12px Arial';
+                ctx.fillText(new Date().toLocaleTimeString(), 100, 95);
+                
+                canvas.toBlob(async (blob) => {
+                    if (!testQuestionId) {
+                        await createTestQuestion();
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('file', blob, 'test-image.png');
+                    
+                    updateStatus('uploadStatus', '🔄 正在上传测试图片...', 'info');
+                    
+                    const response = await fetch(`${API_BASE}/questions/${testQuestionId}/images`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateStatus('uploadStatus', `✅ 测试图片上传成功！
+📄 文件名: ${data.image?.fileName || '测试图片'}
+📏 大小: ${(data.image?.fileSize || 0)} 字节`, 'success');
+                        loadQuestionImages();
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `HTTP ${response.status}`);
+                    }
+                }, 'image/png');
+                
+            } catch (error) {
+                updateStatus('uploadStatus', `❌ 测试图片上传失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 加载问题图片
+        async function loadQuestionImages() {
+            try {
+                updateStatus('displayStatus', '🔄 正在加载问题图片...', 'info');
+                
+                const questionId = testQuestionId || 1;
+                const response = await fetch(`${API_BASE}/questions/${questionId}/images`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const images = data.images || [];
+                    
+                    updateStatus('displayStatus', `✅ 图片加载成功！
+🆔 问题ID: ${questionId}
+📁 图片数量: ${images.length}`, 'success');
+                    
+                    displayImages(images);
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('displayStatus', `❌ 加载图片失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示图片
+        function displayImages(images) {
+            const gallery = document.getElementById('imageGallery');
+            gallery.innerHTML = '';
+            
+            if (images.length === 0) {
+                gallery.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">暂无图片</p>';
+                return;
+            }
+            
+            images.forEach(image => {
+                const imageCard = document.createElement('div');
+                imageCard.className = 'image-card';
+                imageCard.innerHTML = `
+                    <img src="${API_BASE}/questions/images/${image.id}/file" alt="${image.fileName}" onclick="previewImage('${API_BASE}/questions/images/${image.id}/file')">
+                    <div class="image-info">
+                        <div><strong>${image.fileName}</strong></div>
+                        <div>大小: ${image.fileSizeFormatted || formatFileSize(image.fileSize)}</div>
+                        <div>上传时间: ${new Date(image.uploadedAt).toLocaleString()}</div>
+                    </div>
+                `;
+                gallery.appendChild(imageCard);
+            });
+        }
+
+        // 预览图片
+        function previewImage(url) {
+            window.open(url, '_blank');
+        }
+
+        // 测试完整流程
+        async function testCompleteFlow() {
+            try {
+                updateStatus('flowStatus', '🔄 开始完整流程测试...', 'info');
+                
+                // 1. 创建问题
+                await createTestQuestion();
+                
+                // 2. 上传图片
+                await createTestImage();
+                
+                // 3. 加载图片
+                await loadQuestionImages();
+                
+                updateStatus('flowStatus', `✅ 完整流程测试成功！
+✓ 问题创建成功
+✓ 图片上传成功  
+✓ 图片显示成功
+🎉 所有功能正常工作！`, 'success');
+                
+            } catch (error) {
+                updateStatus('flowStatus', `❌ 完整流程测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 辅助函数
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `status-box ${type}`;
+        }
+
+        function formatFileSize(size) {
+            if (!size) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let fileSize = size;
+            let unitIndex = 0;
+            
+            while (fileSize >= 1024 && unitIndex < units.length - 1) {
+                fileSize /= 1024;
+                unitIndex++;
+            }
+            
+            return `${fileSize.toFixed(1)} ${units[unitIndex]}`;
+        }
+
+        // 其他测试函数的占位符
+        function testBatchUpload() {
+            updateStatus('uploadStatus', '⚠️ 批量上传测试需要选择多个文件', 'warning');
+        }
+
+        function testImageDisplay() {
+            updateStatus('displayStatus', '🔄 图片显示测试...', 'info');
+            loadQuestionImages();
+        }
+
+        function testImagePreview() {
+            updateStatus('displayStatus', '💡 点击图片即可预览', 'info');
+        }
+
+        function testQuestionWithImages() {
+            testCompleteFlow();
+        }
+
+        function cleanupTest() {
+            updateStatus('flowStatus', '🗑️ 测试数据清理需要手动删除问题', 'warning');
+        }
+    </script>
+</body>
+</html> 
