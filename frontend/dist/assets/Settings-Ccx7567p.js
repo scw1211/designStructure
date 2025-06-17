@@ -1,0 +1,1 @@
+import{d as t,c as a,a as e,l as n,_ as o}from"./index-BAds8rcd.js";const c={class:"settings-page"},_=t({__name:"Settings",setup(r){return(l,s)=>(n(),a("div",c,s[0]||(s[0]=[e("div",{class:"container"},[e("h1",null,"设置"),e("p",null,"设置页面正在建设中...")],-1)])))}}),d=o(_,[["__scopeId","data-v-2ae2e3d0"]]);export{d as default};
